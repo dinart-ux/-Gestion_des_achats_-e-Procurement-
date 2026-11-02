@@ -1,18 +1,24 @@
 package com.example.backend.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration 
+@Configuration
 public class CorsConfig implements WebMvcConfigurer {
+    private final String allowedOrigin;
+
+    public CorsConfig(@Value("${app.cors.allowed-origin:http://localhost:5173}") String allowedOrigin) {
+        this.allowedOrigin = allowedOrigin;
+    }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry){
+    public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
-                .allowedMethods("*");
+                .allowedOrigins(allowedOrigin)
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("Authorization", "Content-Type", "Accept");
     }
-    
+
 }

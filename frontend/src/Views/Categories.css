@@ -1,0 +1,323 @@
+
+.categories-page {
+    width: 100%;
+    color: #172033;
+}
+
+.categories-heading,
+.categories-list-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.categories-heading {
+    margin-bottom: 24px;
+}
+
+.categories-heading h2 {
+    margin: 0 0 8px;
+    color: #101a4c;
+    font-size: 25px;
+}
+
+.categories-heading p {
+    margin: 0;
+    color: #697386;
+    line-height: 1.6;
+}
+
+.categories-card {
+    margin-bottom: 24px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e7eaf1;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(16, 26, 76, 0.045);
+}
+
+.categories-card h3 {
+    margin: 0 0 22px;
+    color: #101a4c;
+    font-size: 18px;
+}
+
+.categories-form {
+    display: grid;
+    gap: 18px;
+}
+
+.categories-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.categories-field label {
+    color: #303a50;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.categories-field input,
+.categories-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    color: #172033;
+    background: #fff;
+    border: 1px solid #dce1eb;
+    border-radius: 8px;
+    outline: none;
+    font: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.categories-field input:focus,
+.categories-field textarea:focus {
+    border-color: #5968c9;
+    box-shadow: 0 0 0 3px rgba(89, 104, 201, 0.12);
+}
+
+.categories-field textarea {
+    resize: vertical;
+}
+
+.categories-form-actions,
+.categorie-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.categories-btn,
+.categories-refresh {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 13px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.categories-btn:hover:not(:disabled),
+.categories-refresh:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.categories-btn:disabled,
+.categories-refresh:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.categories-btn.primary {
+    padding: 12px 18px;
+    color: #fff;
+    border-color: var(--color-primary-border, #526a8d);
+    background: var(--color-primary, #243b64);
+}
+
+.categories-btn.primary:hover:not(:disabled) {
+    border-color: var(--color-primary-hover, #344f7d);
+    background: var(--color-primary-hover, #344f7d);
+}
+
+.categories-btn.primary:active:not(:disabled) {
+    border-color: var(--color-primary-active, #172847);
+    background: var(--color-primary-active, #172847);
+}
+
+.categories-btn.secondary,
+.categories-refresh {
+    color: #303a50;
+    background: #f4f6fa;
+    border-color: #e1e5ee;
+}
+
+.categories-refresh {
+    color: var(--color-primary, #243b64);
+    background: var(--color-primary-soft, #eef2f8);
+    border-color: var(--color-primary-border, #526a8d);
+}
+
+.categories-refresh:hover:not(:disabled) {
+    color: #fff;
+    background: var(--color-primary-hover, #344f7d);
+    border-color: var(--color-primary-hover, #344f7d);
+}
+
+.categories-refresh:active:not(:disabled) {
+    background: var(--color-primary-active, #172847);
+    border-color: var(--color-primary-active, #172847);
+}
+
+.categories-btn.edit {
+    color: var(--color-primary, #243b64);
+    background: var(--color-primary-soft, #eef2f8);
+    border-color: var(--color-primary-border, #526a8d);
+}
+
+.categories-btn.edit:hover:not(:disabled) {
+    color: #fff;
+    background: var(--color-primary-hover, #344f7d);
+    border-color: var(--color-primary-hover, #344f7d);
+}
+
+.categories-btn.edit:active:not(:disabled) {
+    background: var(--color-primary-active, #172847);
+    border-color: var(--color-primary-active, #172847);
+}
+
+.categories-btn.deactivate {
+    color: #a33636;
+    background: #fff0f0;
+}
+
+.categories-btn.reactivate {
+    color: #187348;
+    background: #e9f8ef;
+}
+
+.categories-list-heading {
+    margin-bottom: 18px;
+}
+
+.categories-list-heading h3 {
+    margin: 0;
+}
+
+.categories-count {
+    padding: 6px 10px;
+    color: #4c5870;
+    background: #f2f4f8;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.categories-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.categories-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.categories-table th,
+.categories-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #edf0f5;
+    vertical-align: middle;
+}
+
+.categories-table th {
+    color: #657087;
+    background: #f8f9fc;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.categories-table td {
+    color: #465168;
+    font-size: 13px;
+}
+
+.categories-table tbody tr:hover {
+    background: #fafbff;
+}
+
+.categories-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.categorie-name {
+    color: #172033 !important;
+    font-weight: 600;
+}
+
+.categorie-status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.categorie-status.active {
+    color: #187348;
+    background: #e9f8ef;
+}
+
+.categorie-status.inactive {
+    color: #8a5a14;
+    background: #fff4df;
+}
+
+.categories-alert {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.categories-alert.error {
+    color: #a12828;
+    background: #fff0f0;
+    border-color: #f4cccc;
+}
+
+.categories-alert.success {
+    color: #176b43;
+    background: #eaf8ef;
+    border-color: #c8ebd4;
+}
+
+.categories-empty {
+    padding: 24px 10px;
+    color: #697386;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .categories-card {
+        padding: 16px;
+    }
+
+    .categories-heading {
+        align-items: flex-start;
+    }
+
+    .categories-heading h2 {
+        font-size: 21px;
+    }
+
+    .categories-table {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-heading {
+        flex-direction: column;
+    }
+
+    .categories-refresh {
+        align-self: flex-start;
+    }
+}

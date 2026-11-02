@@ -1,0 +1,54 @@
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Java / Backend
+backend/target/
+backend/.idea/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/*.log
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Git
+*.swp
+*.swo
+/.env
+
+# Private assistant instructions and local assistant state
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+*.instructions.md
+.codex/
+.cursor/
+.claude/
+.github/copilot-instructions.md
+**/.github/copilot-instructions.md
+
+# Local environment files (keep safe templates)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local caches, duplicated project snapshots, and build output
+.maven-home/
+backend/bin/
+backend/.maven-settings-local.xml
+node_modules/
+target/
+dist/

@@ -1,0 +1,561 @@
+
+/* =====================================================
+   RAPPORTS ET STATISTIQUES
+   Style aligné sur le dashboard compact
+   ===================================================== */
+
+.rapports-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    color: var(--dashboard-text);
+}
+
+/* ---------- En-tête ---------- */
+
+.rapports-page .rapports-hero {
+    padding: 20px 24px;
+    margin-bottom: 0;
+    gap: 16px;
+    border-radius: 22px;
+}
+
+.rapports-page .rapports-hero h1 {
+    margin: 5px 0 6px;
+    font-size: clamp(21px, 2vw, 29px);
+    line-height: 1.25;
+    font-weight: 750;
+    letter-spacing: -0.6px;
+}
+
+.rapports-page .rapports-hero p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.rapports-page .rapports-hero .dashboard-eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.7px;
+}
+
+.rapports-page .rapports-hero .dashboard-hero-badge {
+    padding: 8px 12px;
+    font-size: 11px;
+    gap: 8px;
+}
+
+/* ---------- Sections ---------- */
+
+.rapports-page .dashboard-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 0;
+}
+
+.rapports-page .dashboard-section-heading {
+    margin-bottom: 0;
+    gap: 12px;
+}
+
+.rapports-page .dashboard-section-heading h2 {
+    margin: 4px 0;
+    font-size: 19px;
+    line-height: 1.35;
+    font-weight: 750;
+    letter-spacing: -0.4px;
+}
+
+.rapports-page .dashboard-section-heading p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.rapports-page .dashboard-section-heading .dashboard-eyebrow {
+    font-size: 10px;
+}
+
+/* ---------- Filtres de période ---------- */
+
+.rapports-page .dashboard-filter-panel {
+    gap: 12px;
+    margin-bottom: 0;
+    padding: 14px 16px;
+    border-radius: 15px;
+}
+
+.rapports-page .dashboard-date-field {
+    gap: 6px;
+    min-width: 150px;
+}
+
+.rapports-page .dashboard-date-field label {
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.rapports-page .dashboard-date-field input {
+    min-height: 38px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+.rapports-page .dashboard-primary-button,
+.rapports-page .dashboard-secondary-button {
+    min-height: 38px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+/* ---------- Cartes d'indicateurs ---------- */
+
+.rapports-page .dashboard-report-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.rapports-page .dashboard-kpi-card {
+    gap: 7px;
+    min-width: 0;
+    padding: 14px 16px;
+    border-radius: 15px;
+}
+
+.rapports-page .dashboard-kpi-card > span {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.rapports-page .dashboard-kpi-card > strong {
+    font-size: clamp(17px, 1.5vw, 24px);
+    line-height: 1.25;
+    letter-spacing: -0.4px;
+    overflow-wrap: anywhere;
+}
+
+.rapports-page .dashboard-kpi-card > small {
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+/* ---------- Cartes contenant les graphiques ---------- */
+
+.rapports-page .dashboard-analytics-grid,
+.rapports-page .dashboard-expenses-comparison,
+.rapports-page .rapports-expenses-grid {
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.rapports-page .dashboard-panel {
+    min-width: 0;
+    padding: 16px;
+    border-radius: 16px;
+}
+
+.rapports-page .dashboard-panel-heading {
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.rapports-page .dashboard-panel-heading h3 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 750;
+    letter-spacing: -0.15px;
+}
+
+.rapports-page .dashboard-panel-heading p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+/* ---------- Dépenses par service, fournisseur et catégorie ---------- */
+
+.rapports-page .expense-bars {
+    gap: 14px;
+}
+
+.rapports-page .expense-bars-title {
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.rapports-page .expense-bar-item {
+    min-width: 0;
+}
+
+.rapports-page .expense-bar-heading {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 7px;
+}
+
+.rapports-page .expense-bar-heading > span,
+.rapports-page .expense-bar-heading span {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--dashboard-text);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rapports-page .expense-bar-heading > strong,
+.rapports-page .expense-bar-heading strong {
+    flex-shrink: 0;
+    color: var(--dashboard-navy);
+    font-size: 11px;
+    font-weight: 800;
+    text-align: right;
+}
+
+.rapports-page .expense-bar-track {
+    height: 8px;
+    border-radius: 999px;
+}
+
+.rapports-page .expense-bar-fill {
+    border-radius: inherit;
+}
+
+/* ---------- Demandes par statut ---------- */
+
+.rapports-page .dashboard-status-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.rapports-page .dashboard-status-row {
+    gap: 12px;
+    padding: 12px 0;
+}
+
+.rapports-page .dashboard-status-name {
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.rapports-page .dashboard-status-row > strong {
+    min-width: 32px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+/* ---------- Messages et états vides ---------- */
+
+.rapports-page .dashboard-message {
+    margin-bottom: 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.rapports-page .dashboard-empty {
+    min-height: 90px;
+    padding: 16px;
+    font-size: 12px;
+}
+
+/* ---------- Tableaux éventuels ---------- */
+
+.rapports-page .dashboard-table {
+    font-size: 11px;
+}
+
+.rapports-page .dashboard-table th {
+    padding: 11px 12px;
+    font-size: 10px;
+}
+
+.rapports-page .dashboard-table td {
+    padding: 11px 12px;
+}
+
+.rapports-page .dashboard-table td:first-child strong {
+    font-size: 11px;
+}
+
+.rapports-page .dashboard-table td:first-child small {
+    font-size: 10px;
+}
+
+/* ---------- Tablettes ---------- */
+
+@media (max-width: 1100px) {
+    .rapports-page .dashboard-report-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rapports-page .dashboard-analytics-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ---------- Mobiles ---------- */
+
+@media (max-width: 760px) {
+    .rapports-page {
+        gap: 14px;
+    }
+
+    .rapports-page .rapports-hero {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .rapports-page .rapports-hero h1 {
+        font-size: 23px;
+    }
+
+    .rapports-page .rapports-hero p {
+        font-size: 11px;
+    }
+
+    .rapports-page .dashboard-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .rapports-page .dashboard-report-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .rapports-page .dashboard-kpi-card {
+        padding: 12px;
+    }
+
+    .rapports-page .dashboard-kpi-card > strong {
+        font-size: 19px;
+    }
+
+    .rapports-page .dashboard-panel {
+        padding: 13px;
+    }
+
+    .rapports-page .dashboard-panel-heading {
+        gap: 8px;
+    }
+
+    .rapports-page .dashboard-filter-panel {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 13px;
+    }
+
+    .rapports-page .dashboard-date-field {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .rapports-page .dashboard-date-field input,
+    .rapports-page .dashboard-filter-panel button {
+        width: 100%;
+    }
+
+    .rapports-page .dashboard-expenses-comparison,
+    .rapports-page .rapports-expenses-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+}
+
+/* ---------- Très petits écrans ---------- */
+
+@media (max-width: 420px) {
+    .rapports-page .dashboard-report-kpis {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rapports-page .rapports-hero h1 {
+        font-size: 21px;
+    }
+
+    .rapports-page .expense-bar-heading {
+        gap: 7px;
+    }
+
+    .rapports-page .expense-bar-heading > span,
+    .rapports-page .expense-bar-heading span {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Harmonisation typographique avec le dashboard */
+
+.rapports-page {
+    gap: 16px;
+}
+
+/* En-tête violet */
+.rapports-page .rapports-hero {
+    padding: 20px 24px;
+    gap: 14px;
+}
+
+.rapports-page .rapports-hero h1 {
+    margin: 5px 0 8px;
+    font-size: clamp(22px, 2vw, 30px);
+    line-height: 1.25;
+    font-weight: 750;
+}
+
+.rapports-page .rapports-hero p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.rapports-page .rapports-hero .dashboard-eyebrow {
+    font-size: 10px;
+}
+
+.rapports-page .rapports-hero .dashboard-hero-badge {
+    padding: 8px 12px;
+    font-size: 11px;
+}
+
+/* Titre Vue d'ensemble */
+.rapports-page .dashboard-section-heading h2 {
+    margin: 4px 0;
+    font-size: 19px;
+    line-height: 1.35;
+    font-weight: 750;
+}
+
+.rapports-page .dashboard-section-heading p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* Filtres de dates et boutons */
+.rapports-page .dashboard-filter-panel {
+    gap: 10px;
+    padding: 14px 16px;
+}
+
+.rapports-page .dashboard-date-field label {
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.rapports-page .dashboard-date-field input {
+    min-height: 38px;
+    font-size: 11px;
+}
+
+.rapports-page .dashboard-filter-panel button {
+    min-height: 38px;
+    font-size: 11px;
+}
+
+/* Cartes KPI */
+.rapports-page .dashboard-kpi-card {
+    padding: 13px 15px;
+    gap: 5px;
+}
+
+.rapports-page .dashboard-kpi-card > span {
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.rapports-page .dashboard-kpi-card > strong {
+    font-size: clamp(17px, 1.4vw, 22px);
+    line-height: 1.25;
+}
+
+.rapports-page .dashboard-kpi-card > small {
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+/* Titres et descriptions des graphiques */
+.rapports-page .dashboard-panel-heading h3 {
+    margin: 0 0 5px;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 750;
+}
+
+.rapports-page .dashboard-panel-heading p {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+/* Libellés et montants des barres */
+.rapports-page .expense-bar-heading {
+    gap: 8px;
+}
+
+.rapports-page .expense-bar-heading span {
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+.rapports-page .expense-bar-heading strong {
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+/* Liste des demandes par statut */
+.rapports-page .dashboard-status-name {
+    font-size: 10px;
+}
+
+.rapports-page .dashboard-status-row {
+    padding: 10px 0;
+}
+
+.rapports-page .dashboard-status-row strong {
+    font-size: 11px;
+}
+
+/* Messages */
+.rapports-page .dashboard-message,
+.rapports-page .dashboard-empty {
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* Adaptation mobile */
+@media (max-width: 760px) {
+    .rapports-page .rapports-hero {
+        padding: 16px;
+    }
+
+    .rapports-page .rapports-hero h1 {
+        font-size: 22px;
+    }
+
+    .rapports-page .dashboard-section-heading h2 {
+        font-size: 18px;
+    }
+
+    .rapports-page .dashboard-filter-panel {
+        padding: 12px;
+    }
+}

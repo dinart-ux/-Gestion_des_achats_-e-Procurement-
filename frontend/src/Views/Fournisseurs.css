@@ -1,0 +1,347 @@
+
+/* Fond sombre derrière la fenêtre modale */
+.supplier-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8, 13, 43, 0.68);
+  backdrop-filter: blur(5px);
+  animation: supplierBackdropIn 0.2s ease;
+}
+/* Barre de recherche fournisseurs */
+.supplier-search-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 24px 0 18px;
+}
+
+.supplier-search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+  height: 44px;
+  padding: 0 14px;
+  background: #f8f9fc;
+  border: 1px solid #e2e6ef;
+  border-radius: 10px;
+  transition: 0.2s ease;
+}
+
+.supplier-search-box:focus-within {
+  background: #fff;
+  border-color: #6254d9;
+  box-shadow: 0 0 0 3px rgba(98, 84, 217, 0.1);
+}
+
+.supplier-search-icon {
+  color: #78819b;
+  font-size: 23px;
+}
+
+.supplier-search-box input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #273252;
+  font-size: 13px;
+}
+
+.supplier-search-box input::placeholder {
+  color: #9aa2b5;
+}
+
+.supplier-search-clear {
+  border: none;
+  background: transparent;
+  color: #7b849a;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.supplier-search-count {
+  flex-shrink: 0;
+  color: #7b849a;
+  font-size: 12px;
+}
+
+.supplier-empty-state {
+  padding: 30px 15px;
+  text-align: center;
+  color: #8991a5;
+}
+
+@media (max-width: 600px) {
+  .supplier-search-container {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .supplier-search-box {
+    max-width: 100%;
+  }
+}
+
+/* Fenêtre modale */
+.supplier-modal {
+  position: relative;
+  width: min(900px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid rgba(16, 26, 76, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+  animation: supplierModalIn 0.25s ease;
+}
+
+/* En-tête */
+.supplier-modal-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #e8ebf2;
+}
+
+.supplier-modal-header h3 {
+  margin: 0;
+  color: #101a4c;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.supplier-modal-header p {
+  margin: 7px 0 0;
+  color: #77809a;
+  font-size: 13px;
+}
+
+.supplier-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f3f8;
+  color: #59627c;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.supplier-modal-close:hover:not(:disabled) {
+  background: #fee9e9;
+  color: #d13c4b;
+}
+
+.supplier-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Message d'erreur */
+.supplier-modal-error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+/* Catégories */
+.supplier-category-options {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  padding: 16px;
+  border: 1px solid #e1e5ef;
+  border-radius: 10px;
+}
+
+.supplier-category-options legend {
+  padding: 0 8px;
+  color: #344064;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.supplier-category-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #4e5873;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.supplier-category-options input {
+  width: 16px;
+  height: 16px;
+  accent-color: #6254d9;
+}
+
+/* Boutons */
+.supplier-modal-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 18px;
+  margin-top: 4px;
+  border-top: 1px solid #e8ebf2;
+}
+
+/* Animations */
+@keyframes supplierBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes supplierModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+    }
+    to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+.supplier-modal-backdrop {
+    align-items: flex-start;
+    padding: 12px;
+}
+
+.supplier-modal {
+    max-height: 94vh;
+    padding: 20px 16px;
+    border-radius: 14px;
+}
+
+.supplier-modal-header h3 {
+    font-size: 18px;
+}
+
+.supplier-modal-actions {
+    flex-wrap: wrap;
+}
+}
+/* Modale fournisseur sans barre de défilement */
+.supplier-modal-backdrop {
+  padding: 12px;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+}
+
+.supplier-modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: calc(100vh - 24px);
+  overflow: visible;
+  padding: 20px 26px;
+  margin: 0;
+  box-sizing: border-box;
+  gap: 10px;
+}
+
+/* Champs plus compacts */
+.supplier-modal label {
+  min-width: 0;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.supplier-modal input:not([type="checkbox"]) {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 7px 10px;
+  box-sizing: border-box;
+}
+
+/* En-tête compact */
+.supplier-modal-header {
+  padding-bottom: 10px;
+  margin-bottom: 0;
+}
+
+.supplier-modal-header h3 {
+  font-size: 19px;
+}
+
+.supplier-modal-header p {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+/* Catégories compactes */
+.supplier-category-options {
+  padding: 10px 14px;
+  gap: 8px 18px;
+}
+
+/* Boutons */
+.supplier-modal-actions {
+  padding-top: 10px;
+  margin-top: 0;
+}
+
+/* Écran de petite hauteur */
+@media (max-height: 800px) {
+  .supplier-modal {
+    padding: 14px 22px;
+    gap: 7px;
+  }
+
+  .supplier-modal input:not([type="checkbox"]) {
+    height: 32px;
+  }
+
+  .supplier-modal-header {
+    padding-bottom: 8px;
+    }
+
+    .supplier-category-options {
+        padding: 7px 12px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+    .supplier-modal-backdrop {
+        overflow-y: auto;
+        align-items: flex-start;
+    }
+
+    .supplier-modal {
+        max-height: none;
+        overflow: visible;
+        padding: 18px;
+    }
+}

@@ -1,0 +1,123 @@
+/* Styles bornés aux pages de l'application ; le menu latéral reste inchangé. */
+.page-content .action-icon-button.action-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 9px;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease,
+    box-shadow .18s ease, transform .18s ease;
+}
+
+.page-content .action-icon-button.action-icon-button > svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+
+.page-content .action-icon-button--metal {
+  color: var(--color-primary, #243b64);
+  background: var(--color-primary-soft, #eef2f8);
+  border-color: var(--color-primary-border, #526a8d);
+}
+
+.page-content .action-icon-button--metal:hover:not(:disabled) {
+  color: #fff;
+  background: var(--color-primary-hover, #344f7d);
+  border-color: var(--color-primary-hover, #344f7d);
+}
+
+.page-content .action-icon-button--metal:active:not(:disabled) {
+  color: #fff;
+  background: var(--color-primary-active, #172847);
+  border-color: var(--color-primary-active, #172847);
+}
+
+.page-content .action-icon-button--metal:focus-visible {
+  outline: 3px solid var(--color-primary-focus, rgba(82, 106, 141, .35));
+  outline-offset: 2px;
+}
+
+.page-content .action-icon-button--neutral {
+  color: var(--color-navy, #101a4c);
+  background: #f7f8fc;
+  border-color: #e5e7eb;
+}
+
+.page-content .action-icon-button--neutral:hover:not(:disabled) {
+  background: #eef0f8;
+  border-color: #cbd0df;
+}
+
+.page-content .action-icon-button.action-icon-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.page-content .action-icon-button.action-icon-button.is-loading > svg {
+  animation: page-action-icon-spin .8s linear infinite;
+}
+
+@keyframes page-action-icon-spin {
+  to { transform: rotate(360deg); }
+}
+
+.page-content .icon-action-button.icon-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease,
+    box-shadow .18s ease, transform .18s ease;
+}
+
+.page-content .icon-action-button.icon-action-button > svg {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+
+.page-content .icon-action-button.icon-action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.page-content .icon-action-button.icon-action-button:disabled,
+.page-content .action-icon-button.action-icon-button:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .page-content .action-icon-button.action-icon-button {
+    flex-basis: 42px;
+    width: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    height: 42px;
+  }
+
+  .page-content .icon-action-button.icon-action-button {
+    min-height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content .action-icon-button.action-icon-button,
+  .page-content .icon-action-button.icon-action-button {
+    transition-duration: .01ms;
+  }
+
+  .page-content .action-icon-button.action-icon-button:hover:not(:disabled),
+  .page-content .icon-action-button.icon-action-button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .page-content .action-icon-button.action-icon-button.is-loading > svg {
+    animation-duration: 2s;
+  }
+}

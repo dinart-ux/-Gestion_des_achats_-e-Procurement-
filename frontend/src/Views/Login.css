@@ -1,0 +1,498 @@
+
+.login-page {
+    --login-navy: var(--color-navy, #101A4C);
+    --login-navy-deep: var(--color-night, #080D2B);
+    --login-purple: #7B2CBF;
+
+    min-height: 100vh;
+    min-height: 100svh;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    padding: 28px;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: #243047;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    /* Image principale + voile bleu marine */
+    background-color: #080D2B;
+    background-image:
+        linear-gradient(
+            rgba(16, 26, 76, 0.75),
+            rgba(16, 26, 76, 0.75)
+        ),
+        url("../assets/Image_w6t1h8w6t1h8w6t1.jpeg");
+
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+
+
+.login-page *,
+.login-page *::before,
+.login-page *::after {
+    box-sizing: border-box;
+}
+
+/* CONTENEUR PRINCIPAL */
+
+.login-page .container {
+    width: min(100%, 1000px);
+    min-width: 0;
+    margin: 0 auto;
+}
+
+.login-page .card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .55);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(8, 13, 43, .30);
+}
+
+/* =========================================
+   PANNEAU GAUCHE — PHOTO DU PORT
+   ========================================= */
+
+
+.login-page .visual {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+    min-height: 480px;
+    padding: clamp(28px, 4vw, 48px);
+
+    overflow: hidden;
+    color: #fff;
+    background-color: #101A4C;
+    background-image: none;
+}
+
+/* Photo du port */
+
+.login-page .visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(123, 44, 191, 0.20),
+            rgba(16, 26, 76, 0.40)
+        ),
+        url("../assets/Image_w6t1h8w6t1h8w6t1.jpeg");
+
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    filter: blur(2px);
+    transform: scale(1.02);
+}
+
+.login-page .visual-content {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    max-width: 440px;
+    margin: auto 0;
+}
+
+
+/* Contenu au-dessus de l'image */
+
+.login-page .visual-content {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    max-width: 440px;
+    margin: auto 0;
+}
+
+.login-page .visual-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 0 22px;
+}
+
+.login-page .visual-logo {
+    display: block;
+    width: clamp(66px, 8vw, 94px);
+    height: clamp(66px, 8vw, 94px);
+    flex: 0 0 auto;
+
+    padding: 5px;
+    object-fit: contain;
+    border-radius: 13px;
+    background: #fff;
+
+    box-shadow: 0 8px 24px rgba(8, 13, 43, .22);
+}
+
+.login-page .visual-brand h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(30px, 3.1vw, 44px);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -.04em;
+}
+
+.login-page .visual-content > p {
+    max-width: 420px;
+    margin: 16px 0 0;
+
+    color: rgba(255, 255, 255, .94);
+    font-size: 13px;
+    line-height: 1.75;
+}
+
+.login-page .visual-caption {
+    margin-top: 24px !important;
+    font-size: 12px !important;
+    font-weight: 650;
+}
+
+/* =========================================
+   PANNEAU DROIT — FORMULAIRE
+   ========================================= */
+
+.login-page .form-panel {
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+    min-height: 0;
+    padding: clamp(30px, 4vw, 54px);
+
+    background: #fff;
+}
+
+.login-page .form-view {
+    width: 100%;
+    min-width: 0;
+}
+
+.login-page .header h2 {
+    margin: 0 0 10px;
+    color: var(--login-navy);
+    font-size: clamp(25px, 2.5vw, 32px);
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+
+.login-page .header p {
+    margin: 0 0 25px;
+    color: #7b8499;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* FORMULAIRE */
+
+.login-page .login-form {
+    width: 100%;
+    margin: 0;
+}
+
+.login-page .field-group {
+    margin-bottom: 17px;
+}
+
+.login-page .field-group label {
+    display: block;
+    margin-bottom: 8px;
+
+    color: #34405c;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.login-page .field-group input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 47px;
+
+    padding: 12px 14px;
+    border: 1px solid #dce1ed;
+    border-radius: 7px;
+    outline: none;
+
+    background: #f8f9fd;
+    color: var(--login-navy);
+    font: inherit;
+    font-size: 14px;
+
+    transition:
+        border-color .2s ease,
+        background-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.login-page .field-group input:hover {
+    border-color: #b7addb;
+    background: #fff;
+}
+
+.login-page .field-group input:focus {
+    border-color: var(--login-purple);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(123, 44, 191, .12);
+}
+
+.login-page .field-group input::placeholder {
+    color: #969db0;
+    opacity: 1;
+    font-size: 13px;
+}
+
+/* BOUTON DE CONNEXION */
+
+.login-page .submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    min-height: 46px;
+    margin-top: 5px;
+    padding: 12px 25px;
+
+    border: 0;
+    border: 1px solid var(--color-primary-border, #526a8d);
+    border-radius: 8px;
+    background: var(--color-primary, #243b64);
+
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(16, 26, 76, .18);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        opacity .2s ease;
+}
+
+.login-page .submit:hover {
+    transform: translateY(-1px);
+    background: var(--color-primary-hover, #344f7d);
+    border-color: var(--color-primary-hover, #344f7d);
+    box-shadow: 0 11px 24px rgba(23, 40, 71, .22);
+}
+
+.login-page .submit:active:not(:disabled) {
+    background: var(--color-primary-active, #172847);
+    border-color: var(--color-primary-active, #172847);
+    transform: translateY(0);
+}
+
+.login-page .submit:focus-visible {
+    outline: 3px solid var(--color-primary-focus, rgba(82, 106, 141, .35));
+    outline-offset: 2px;
+}
+
+.login-page .submit:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* PIED DU FORMULAIRE */
+
+.login-page .footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+
+    margin-top: 22px;
+    color: #9299ad;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.login-page .link-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    color: #6f36ad;
+    font: inherit;
+    font-weight: 700;
+
+    cursor: pointer;
+    text-align: left;
+}
+
+.login-page .link-button:hover {
+    color: var(--login-navy);
+    text-decoration: underline;
+}
+
+/* =========================================
+   MESSAGE D'ERREUR
+   Garde une hauteur stable
+   ========================================= */
+
+.login-page .login-error-slot {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    min-height: 64px;
+}
+
+.login-page .login-error {
+    width: 100%;
+    margin: 0;
+    padding: 10px 12px;
+
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+
+    background: #fff1f2;
+    color: #b42318;
+
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* RÉCUPÉRATION DU COMPTE */
+
+.login-page .recovery-note {
+    margin: 0 0 12px;
+    color: #7b8499;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* ACCESSIBILITÉ */
+
+.login-page :focus-visible {
+    outline: 3px solid rgba(123, 44, 191, .3);
+    outline-offset: 3px;
+}
+
+/* =========================================
+   TABLETTES
+   ========================================= */
+
+@media (max-width: 800px) {
+    .login-page {
+        padding: 20px;
+    }
+
+    .login-page .visual {
+        min-height: 430px;
+        padding: 28px;
+    }
+
+    .login-page .form-panel {
+        padding: 30px;
+    }
+
+    .login-page .visual-brand {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 13px;
+    }
+}
+
+/* =========================================
+   TÉLÉPHONES
+   ========================================= */
+
+@media (max-width: 600px) {
+    .login-page {
+        min-height: 100vh;
+        min-height: 100svh;
+        padding: 12px;
+        overflow-y: auto;
+    }
+
+    .login-page .container {
+        height: auto;
+    }
+
+    .login-page .card {
+        grid-template-columns: minmax(0, 1fr);
+        border-radius: 15px;
+    }
+
+    .login-page .visual {
+        min-height: auto;
+        padding: 22px;
+    }
+
+    .login-page .visual-brand {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .login-page .visual-logo {
+        width: 58px;
+        height: 58px;
+    }
+
+    .login-page .visual-brand h1 {
+        font-size: 29px;
+    }
+
+    .login-page .visual-content > p {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .login-page .visual-caption {
+        margin-top: 12px !important;
+    }
+
+    .login-page .form-panel {
+        padding: 25px 22px;
+    }
+
+    .login-page .header h2 {
+        font-size: 26px;
+    }
+
+    .login-page .submit {
+        width: 100%;
+    }
+}
+
+/* RESPECT DES PRÉFÉRENCES D'ANIMATION */
+
+@media (prefers-reduced-motion: reduce) {
+    .login-page *,
+    .login-page *::before,
+    .login-page *::after {
+        transition: none !important;
+    }
+}
