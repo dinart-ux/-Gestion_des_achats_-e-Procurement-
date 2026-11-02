@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
+
 
 const emptyForm = {
   fournisseurId: '',
@@ -19,7 +21,7 @@ export default function Offres() {
   const [selected, setSelected] = useState('');
   const [offres, setOffres] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [error, setError] = useState('');
+  const {error,success,setError,setSuccess,} = useToastMessages();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [workingOfferId, setWorkingOfferId] = useState(null);

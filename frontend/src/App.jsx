@@ -7,9 +7,12 @@ import {
 } from 'react-router-dom';
 
 import './App.css';
+
 import Login from './Views/Login';
 import Menu from './Views/Menu';
+
 import { getStoredUser } from './service/roleUtils';
+import { ToastProvider } from './components/notifications/ToastContext';
 
 function AppRoutes() {
     const location = useLocation();
@@ -53,8 +56,10 @@ function AppRoutes() {
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <AppRoutes />
-        </BrowserRouter>
+        <ToastProvider>
+            <BrowserRouter>
+                <AppRoutes />
+            </BrowserRouter>
+        </ToastProvider>
     );
 }

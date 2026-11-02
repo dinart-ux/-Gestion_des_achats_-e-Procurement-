@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import './Menu.css';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import api from '../service/api';
 
 export default function Produits() {
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {error,success,setError,setSuccess,} = useToastMessages();
 
   useEffect(() => {
     const controller = new AbortController();

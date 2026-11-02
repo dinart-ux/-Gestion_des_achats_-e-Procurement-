@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
 
 function getUser() {
@@ -15,6 +16,7 @@ function getUser() {
 
 function isAdministrator(user) {
   const role = user.role;
+
   const candidates = [
     user.roleCode,
     user.role_code,
@@ -49,26 +51,27 @@ export default function Parametres() {
   const [budgetCentres, setBudgetCentres] = useState([]);
   const [services, setServices] = useState([]);
 
-  
   const [serviceForm, setServiceForm] = useState({ nom: '' });
   const [editingServiceId, setEditingServiceId] = useState(null);
   const [savingService, setSavingService] = useState(false);
+
   const savingServiceRef = useRef(false);
   const creatingCentreRef = useRef(false);
-
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [centreFilter, setCentreFilter] = useState('');
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
   const [savingBudget, setSavingBudget] = useState(false);
+
   const [budgetForm, setBudgetForm] = useState({
     centreCoutId: '',
     annee: new Date().getFullYear(),
     montantAlloue: '',
     seuilAlertePct: 80,
   });
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+
+  const { setError, setSuccess } = useToastMessages();
+
   const [creating, setCreating] = useState(false);
 
   const [form, setForm] = useState({
@@ -92,10 +95,12 @@ export default function Parametres() {
           'Impossible de charger les budgets.'
       );
     }
-  }, [year]);
+  }, [year, setError]);
 
+  // Charger les centres de coût actifs pour la gestion des budgets.
   const loadBudgetCentres = useCallback(async () => {
     if (!isAdmin) return;
+
     try {
       const { data } = await workflowApi.get('/budgets/centres-cout');
       setBudgetCentres(Array.isArray(data) ? data : []);
@@ -106,7 +111,7 @@ export default function Parametres() {
           'Impossible de charger les centres de coût actifs.'
       );
     }
-  }, [isAdmin]);
+  }, [isAdmin, setError]);
 
   // Charger les centres de coût.
   const loadCentres = useCallback(async () => {
@@ -120,9 +125,9 @@ export default function Parametres() {
           'Impossible de charger les centres de coût.'
       );
     }
-  }, []);
+  }, [setError]);
 
-  // Charger les services associés aux centres de coût.
+  // Charger les services.
   const loadServices = useCallback(async () => {
     try {
       const { data } = await workflowApi.get('/services');
@@ -130,20 +135,29 @@ export default function Parametres() {
 
       setServices(liste);
 
-      if (
-        liste.length > 0 &&
-        !liste.some((s) => String(s.id) === String(form.serviceId))
-      ) {
-        setForm((current) => ({
-          ...current,
-          serviceId: String(liste[0].id),
-        }));
-      }
+      setForm((current) => {
+        if (
+          liste.length > 0 &&
+          !liste.some(
+            (service) => String(service.id) === String(current.serviceId)
+          )
+        ) {
+          return {
+            ...current,
+            serviceId: String(liste[0].id),
+          };
+        }
+
+        return current;
+      });
     } catch (e) {
       setServices([]);
-      setError(e.response?.data?.message || 'Impossible de charger les services.');
+      setError(
+        e.response?.data?.message ||
+          'Impossible de charger les services.'
+      );
     }
-  }, [form.serviceId]);
+  }, [setError]);
 
   useEffect(() => {
     load();
@@ -166,9 +180,11 @@ export default function Parametres() {
   // Créer un centre de coût.
   const createCentre = async (e) => {
     e.preventDefault();
+
     if (creatingCentreRef.current) return;
+
     setError('');
-    setMessage('');
+    setSuccess('');
 
     const code = form.code.trim();
     const libelle = form.libelle.trim();
@@ -178,6 +194,7 @@ export default function Parametres() {
       setError('Le code et le libellé sont obligatoires.');
       return;
     }
+
     if (code.length > 20 || libelle.length > 100) {
       setError('Le code est limité à 20 caractères et le libellé à 100.');
       return;
@@ -197,7 +214,8 @@ export default function Parametres() {
         libelle,
         serviceId,
       });
-        setMessage('Centre de coût créé avec succès.');
+
+      setSuccess('Centre de coût créé avec succès.');
 
       setForm((current) => ({
         ...current,
@@ -218,13 +236,15 @@ export default function Parametres() {
       setCreating(false);
     }
   };
-  
+
   // Créer ou modifier un service.
   const saveService = async (e) => {
     e.preventDefault();
+
     if (savingServiceRef.current) return;
+
     setError('');
-    setMessage('');
+    setSuccess('');
 
     const nom = serviceForm.nom.trim();
 
@@ -232,6 +252,7 @@ export default function Parametres() {
       setError('Le nom du service est obligatoire.');
       return;
     }
+
     if (nom.length > 100) {
       setError('Le nom du service ne peut pas dépasser 100 caractères.');
       return;
@@ -243,10 +264,10 @@ export default function Parametres() {
     try {
       if (editingServiceId !== null) {
         await workflowApi.put(`/services/${editingServiceId}`, { nom });
-        setMessage('Service modifié avec succès.');
+        setSuccess('Service modifié avec succès.');
       } else {
         await workflowApi.post('/services', { nom });
-        setMessage('Service créé avec succès.');
+        setSuccess('Service créé avec succès.');
       }
 
       setServiceForm({ nom: '' });
@@ -271,7 +292,7 @@ export default function Parametres() {
     setEditingServiceId(service.id);
     setServiceForm({ nom: service.nom || '' });
     setError('');
-    setMessage('');
+    setSuccess('');
   };
 
   // Annuler la modification.
@@ -279,11 +300,13 @@ export default function Parametres() {
     setEditingServiceId(null);
     setServiceForm({ nom: '' });
     setError('');
+    setSuccess('');
   };
 
   // Supprimer un service.
   const deleteService = async (service) => {
     if (savingServiceRef.current) return;
+
     const confirmer = window.confirm(
       `Veux-tu vraiment supprimer le service "${service.nom}" ?`
     );
@@ -291,16 +314,15 @@ export default function Parametres() {
     if (!confirmer) return;
 
     setError('');
-    setMessage('');
+    setSuccess('');
+
     savingServiceRef.current = true;
     setSavingService(true);
 
     try {
-      const { data } = await workflowApi.delete(
-        `/services/${service.id}`
-      );
+      const { data } = await workflowApi.delete(`/services/${service.id}`);
 
-      setMessage(data.message || 'Service supprimé avec succès.');
+      setSuccess(data.message || 'Service supprimé avec succès.');
 
       if (editingServiceId === service.id) {
         cancelEditService();
@@ -320,7 +342,6 @@ export default function Parametres() {
     }
   };
 
-
   // Modifier un champ du budget.
   const update = (id, key, value) => {
     setRows((current) =>
@@ -332,17 +353,21 @@ export default function Parametres() {
     );
   };
 
-  // Enregistrer un budget.
+  // Enregistrer un budget existant.
   const save = async (row) => {
     setError('');
-    setMessage('');
+    setSuccess('');
 
     const montant = Number(row.montant_alloue);
     const seuil = Number(row.seuil_alerte_pct ?? 80);
     const annee = Number(year);
 
-    if (row.montant_alloue === '' || !Number.isFinite(montant) || montant <= 0) {
-      setError('Le montant alloué doit être positif ou nul.');
+    if (
+      row.montant_alloue === '' ||
+      !Number.isFinite(montant) ||
+      montant <= 0
+    ) {
+      setError('Le montant alloué doit être strictement positif.');
       return;
     }
 
@@ -365,7 +390,7 @@ export default function Parametres() {
       });
 
       await load();
-      setMessage('Budget enregistré avec succès.');
+      setSuccess('Budget enregistré avec succès.');
     } catch (e) {
       setError(
         e.response?.data?.message ||
@@ -375,40 +400,80 @@ export default function Parametres() {
     }
   };
 
-  const displayedBudgetRows = rows.filter((row) =>
-    !centreFilter || String(row.centre_cout_id) === String(centreFilter)
+  const displayedBudgetRows = rows.filter(
+    (row) =>
+      !centreFilter ||
+      String(row.centre_cout_id) === String(centreFilter)
   );
 
   const openNewBudget = () => {
-    setBudgetForm({ centreCoutId: '', annee: Number(year), montantAlloue: '', seuilAlertePct: 80 });
+    setBudgetForm({
+      centreCoutId: '',
+      annee: Number(year),
+      montantAlloue: '',
+      seuilAlertePct: 80,
+    });
+
     setBudgetFormOpen(true);
     setError('');
-    setMessage('');
+    setSuccess('');
   };
 
+  // Vérifier si un budget existe déjà pour le centre et l'année choisis.
   const updateBudgetSelection = async (key, value) => {
     const next = { ...budgetForm, [key]: value };
+
     setBudgetForm(next);
-    if (!next.centreCoutId || !Number.isInteger(Number(next.annee))) {
-      setBudgetForm((current) => ({ ...current, montantAlloue: '', seuilAlertePct: 80 }));
+
+    if (
+      !next.centreCoutId ||
+      !Number.isInteger(Number(next.annee)) ||
+      Number(next.annee) < 2000 ||
+      Number(next.annee) > 2100
+    ) {
+      setBudgetForm((current) => ({
+        ...current,
+        montantAlloue: '',
+        seuilAlertePct: 80,
+      }));
       return;
     }
+
     try {
       const { data } = await workflowApi.get('/budgets', {
-        params: { annee: Number(next.annee), centreCoutId: Number(next.centreCoutId) },
+        params: {
+          annee: Number(next.annee),
+          centreCoutId: Number(next.centreCoutId),
+        },
       });
-      const existing = data.find((row) => row.budget_id);
+
+      const existing = Array.isArray(data)
+        ? data.find((row) => row.budget_id)
+        : null;
+
       setBudgetForm((current) => ({
         ...current,
         montantAlloue: existing?.montant_alloue ?? '',
         seuilAlertePct: existing?.seuil_alerte_pct ?? 80,
       }));
-      setMessage(existing ? 'Un budget existe déjà pour ce centre et cette année ; vous pourrez le modifier.' : '');
+
+      if (existing) {
+        setSuccess(
+          'Un budget existe déjà pour ce centre et cette année ; vous pourrez le modifier.'
+        );
+      } else {
+        setSuccess('');
+      }
     } catch (e) {
-      setError(e.response?.data?.message || e.response?.data?.error || 'Impossible de vérifier le budget existant.');
+      setError(
+        e.response?.data?.message ||
+          e.response?.data?.error ||
+          'Impossible de vérifier le budget existant.'
+      );
     }
   };
 
+  // Modifier un budget existant dans le formulaire.
   const editBudget = (row) => {
     setBudgetForm({
       centreCoutId: String(row.centre_cout_id),
@@ -416,16 +481,20 @@ export default function Parametres() {
       montantAlloue: row.montant_alloue ?? '',
       seuilAlertePct: row.seuil_alerte_pct ?? 80,
     });
+
     setYear(Number(row.annee || year));
     setBudgetFormOpen(true);
     setError('');
-    setMessage('');
+    setSuccess('');
   };
 
+  // Créer ou modifier un budget.
   const saveBudget = async (event) => {
     event.preventDefault();
+
     setError('');
-    setMessage('');
+    setSuccess('');
+
     const centreCoutId = Number(budgetForm.centreCoutId);
     const montant = Number(budgetForm.montantAlloue);
     const seuil = Number(budgetForm.seuilAlertePct);
@@ -435,33 +504,60 @@ export default function Parametres() {
       setError('Sélectionnez un centre de coût actif.');
       return;
     }
-    if (budgetForm.montantAlloue === '' || !Number.isFinite(montant) || montant <= 0) {
+
+    if (
+      budgetForm.montantAlloue === '' ||
+      !Number.isFinite(montant) ||
+      montant <= 0
+    ) {
       setError('Le montant alloué doit être strictement positif.');
       return;
     }
+
     if (!Number.isInteger(annee) || annee < 2000 || annee > 2100) {
       setError('L’année budgétaire doit être comprise entre 2000 et 2100.');
       return;
     }
+
     if (!Number.isFinite(seuil) || seuil < 0 || seuil > 100) {
       setError('Le seuil d’alerte doit être compris entre 0 et 100.');
       return;
     }
 
     setSavingBudget(true);
+
     try {
       await workflowApi.put('/budgets', {
-        centreCoutId, annee, montantAlloue: montant, seuilAlertePct: seuil,
+        centreCoutId,
+        annee,
+        montantAlloue: montant,
+        seuilAlertePct: seuil,
       });
+
       setYear(annee);
       setCentreFilter(String(centreCoutId));
       setBudgetFormOpen(false);
-      setBudgetForm({ centreCoutId: '', annee, montantAlloue: '', seuilAlertePct: 80 });
-      setMessage('Budget enregistré avec succès.');
-      const { data } = await workflowApi.get('/budgets', { params: { annee } });
+
+      setBudgetForm({
+        centreCoutId: '',
+        annee,
+        montantAlloue: '',
+        seuilAlertePct: 80,
+      });
+
+      setSuccess('Budget enregistré avec succès.');
+
+      const { data } = await workflowApi.get('/budgets', {
+        params: { annee },
+      });
+
       setRows(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.response?.data?.message || e.response?.data?.error || 'Impossible d’enregistrer le budget.');
+      setError(
+        e.response?.data?.message ||
+          e.response?.data?.error ||
+          'Impossible d’enregistrer le budget.'
+      );
     } finally {
       setSavingBudget(false);
     }
@@ -469,21 +565,6 @@ export default function Parametres() {
 
   return (
     <div className="page-content">
-      {error && (
-        <section className="content-card">
-          <p className="workflow-error" role="alert">
-            {error}
-          </p>
-        </section>
-      )}
-
-      {message && (
-        <section className="content-card">
-          <p role="status">{message}</p>
-        </section>
-      )}
-
-      
       {/* Gestion des services : administrateur uniquement */}
       {isAdmin && (
         <section id="services" className="content-card">
@@ -512,7 +593,11 @@ export default function Parametres() {
             </label>
 
             <div className="service-form-actions">
-              <IconActionButton icon={editingServiceId !== null ? 'save' : 'create'} type="submit" disabled={savingService}>
+              <IconActionButton
+                icon={editingServiceId !== null ? 'save' : 'create'}
+                type="submit"
+                disabled={savingService}
+              >
                 {savingService
                   ? 'Enregistrement...'
                   : editingServiceId !== null
@@ -555,9 +640,20 @@ export default function Parametres() {
                       <td>{service.nom}</td>
                       <td>
                         <div className="service-row-actions">
-                          <ActionIconButton icon="edit" label={`Modifier le service ${service.nom}`} onClick={() => editService(service)} disabled={savingService} />
+                          <ActionIconButton
+                            icon="edit"
+                            label={`Modifier le service ${service.nom}`}
+                            onClick={() => editService(service)}
+                            disabled={savingService}
+                          />
 
-                          <ActionIconButton icon="delete" label={`Supprimer le service ${service.nom}`} className="service-delete-button" onClick={() => deleteService(service)} disabled={savingService} />
+                          <ActionIconButton
+                            icon="delete"
+                            label={`Supprimer le service ${service.nom}`}
+                            className="service-delete-button"
+                            onClick={() => deleteService(service)}
+                            disabled={savingService}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -568,7 +664,6 @@ export default function Parametres() {
           )}
         </section>
       )}
-
 
       {/* Création réservée à l'administrateur */}
       {isAdmin && (
@@ -582,6 +677,7 @@ export default function Parametres() {
           <form onSubmit={createCentre}>
             <label>
               Code du centre de coût
+
               <input
                 type="text"
                 value={form.code}
@@ -600,6 +696,7 @@ export default function Parametres() {
 
             <label>
               Libellé
+
               <input
                 type="text"
                 value={form.libelle}
@@ -618,6 +715,7 @@ export default function Parametres() {
 
             <label>
               Service associé
+
               <select
                 value={form.serviceId}
                 onChange={(e) =>
@@ -639,7 +737,11 @@ export default function Parametres() {
               </select>
             </label>
 
-            <IconActionButton icon="create" type="submit" disabled={creating || services.length === 0}>
+            <IconActionButton
+              icon="create"
+              type="submit"
+              disabled={creating || services.length === 0}
+            >
               {creating
                 ? 'Création en cours...'
                 : 'Créer le centre de coût'}
@@ -685,38 +787,121 @@ export default function Parametres() {
       {isAdmin && (
         <section className="content-card">
           <h2>Gestion des budgets annuels</h2>
-          <IconActionButton icon="create" type="button" className="action-button" onClick={openNewBudget}>Créer un budget</IconActionButton>
+
+          <IconActionButton
+            icon="create"
+            type="button"
+            className="action-button"
+            onClick={openNewBudget}
+          >
+            Créer un budget
+          </IconActionButton>
+
           {budgetFormOpen && (
             <form className="filter-form" onSubmit={saveBudget}>
               <label>
                 Centre de coût
-                <select required value={budgetForm.centreCoutId} onChange={(e) => updateBudgetSelection('centreCoutId', e.target.value)}>
+
+                <select
+                  required
+                  value={budgetForm.centreCoutId}
+                  onChange={(e) =>
+                    updateBudgetSelection('centreCoutId', e.target.value)
+                  }
+                >
                   <option value="">Sélectionner un centre actif</option>
+
                   {budgetCentres.map((centre) => (
-                    <option key={centre.centre_cout_id} value={centre.centre_cout_id}>{centre.code} — {centre.libelle}</option>
+                    <option
+                      key={centre.centre_cout_id}
+                      value={centre.centre_cout_id}
+                    >
+                      {centre.code} — {centre.libelle}
+                    </option>
                   ))}
                 </select>
               </label>
+
               <label>
                 Année budgétaire
-                <input required type="number" min="2000" max="2100" value={budgetForm.annee} onChange={(e) => updateBudgetSelection('annee', Number(e.target.value))} />
+
+                <input
+                  required
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  value={budgetForm.annee}
+                  onChange={(e) =>
+                    updateBudgetSelection('annee', Number(e.target.value))
+                  }
+                />
               </label>
+
               <label>
                 Montant annuel alloué
-                <input required type="number" min="0.01" step="0.01" value={budgetForm.montantAlloue} onChange={(e) => setBudgetForm((current) => ({ ...current, montantAlloue: e.target.value }))} />
+
+                <input
+                  required
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={budgetForm.montantAlloue}
+                  onChange={(e) =>
+                    setBudgetForm((current) => ({
+                      ...current,
+                      montantAlloue: e.target.value,
+                    }))
+                  }
+                />
               </label>
+
               <label>
                 Seuil d’alerte (%)
-                <input required type="number" min="0" max="100" step="0.01" value={budgetForm.seuilAlertePct} onChange={(e) => setBudgetForm((current) => ({ ...current, seuilAlertePct: e.target.value }))} />
+
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={budgetForm.seuilAlertePct}
+                  onChange={(e) =>
+                    setBudgetForm((current) => ({
+                      ...current,
+                      seuilAlertePct: e.target.value,
+                    }))
+                  }
+                />
               </label>
+
               <div className="form-actions">
-                <IconActionButton icon="save" type="submit" className="action-button" disabled={savingBudget}>{savingBudget ? 'Enregistrement…' : 'Enregistrer le budget'}</IconActionButton>
-                <IconActionButton icon="cancel" type="button" className="quiet-button" onClick={() => setBudgetFormOpen(false)} disabled={savingBudget}>Annuler</IconActionButton>
+                <IconActionButton
+                  icon="save"
+                  type="submit"
+                  className="action-button"
+                  disabled={savingBudget}
+                >
+                  {savingBudget
+                    ? 'Enregistrement…'
+                    : 'Enregistrer le budget'}
+                </IconActionButton>
+
+                <IconActionButton
+                  icon="cancel"
+                  type="button"
+                  className="quiet-button"
+                  onClick={() => setBudgetFormOpen(false)}
+                  disabled={savingBudget}
+                >
+                  Annuler
+                </IconActionButton>
               </div>
             </form>
           )}
         </section>
       )}
+
+      {/* Budgets par centre de coût */}
       <section id="budgets" className="content-card">
         <h2>Budgets par centre de coût</h2>
 
@@ -727,6 +912,7 @@ export default function Parametres() {
 
         <label>
           Année
+
           <input
             type="number"
             min="2000"
@@ -735,12 +921,23 @@ export default function Parametres() {
             onChange={(e) => setYear(Number(e.target.value))}
           />
         </label>
+
         <label>
           Centre de coût
-          <select value={centreFilter} onChange={(e) => setCentreFilter(e.target.value)}>
+
+          <select
+            value={centreFilter}
+            onChange={(e) => setCentreFilter(e.target.value)}
+          >
             <option value="">Tous les centres</option>
+
             {rows.map((row) => (
-              <option key={row.centre_cout_id} value={row.centre_cout_id}>{row.code} — {row.libelle}</option>
+              <option
+                key={row.centre_cout_id}
+                value={row.centre_cout_id}
+              >
+                {row.code} — {row.libelle}
+              </option>
             ))}
           </select>
         </label>
@@ -814,8 +1011,7 @@ export default function Parametres() {
                     </td>
 
                     <td>
-                      {Number(row.montant_engage || 0)
-                        .toLocaleString('fr-FR')}
+                      {Number(row.montant_engage || 0).toLocaleString('fr-FR')}
                     </td>
 
                     <td>

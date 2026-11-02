@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
 
 const EMPTY_FORM = {
@@ -26,8 +27,7 @@ export default function Categories() {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const {error,success,setError,setSuccess,} = useToastMessages();
     const savingRef = useRef(false);
 
     const load = useCallback(async () => {

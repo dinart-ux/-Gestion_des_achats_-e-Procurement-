@@ -1,8 +1,8 @@
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
 import './Demandes.css';
 
@@ -36,8 +36,7 @@ export default function Demandes() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const {error,success,setError,setSuccess,} = useToastMessages();
   const [saving, setSaving] = useState(false);
 
   const savingRef = useRef(false);

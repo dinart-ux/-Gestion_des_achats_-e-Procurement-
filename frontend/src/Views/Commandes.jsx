@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
 
 export default function Commandes() {
@@ -8,7 +9,7 @@ export default function Commandes() {
   const [selected, setSelected] = useState(null);
   const [lines, setLines] = useState([]);
   const [observation, setObservation] = useState('');
-  const [error, setError] = useState('');
+  const {error,success,setError,setSuccess,} = useToastMessages();
   const load = useCallback(async () => {
     try { setCommandes((await workflowApi.get('/commandes')).data); setError(''); }
     catch (e) { setError(e.response?.data?.message || 'Impossible de charger les commandes.'); }
@@ -60,7 +61,9 @@ const open = async (order) => {
     if (!receivedLines.length) { setError('Indiquez au moins une quantité reçue.'); return; }
     try {
       await workflowApi.post(`/commandes/${selected.id}/receptions`, { lignes: receivedLines, observation });
-      setSelected(null); setError('Réception enregistrée.'); await load();
+      setSelected(null);
+      setSuccess('Réception enregistrée.');
+      await load();
     } catch (e) { setError(e.response?.data?.message || 'Impossible d’enregistrer la réception.'); }
   };
   return <div className="page-content"><section className="content-card">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext.jsx';
 import './Menu.css';
 
 const EMPTY_FILTERS = { serviceId: '', montantMin: '', montantMax: '', demandeur: '' };
@@ -27,7 +28,7 @@ export default function Validations() {
   const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState(null);
   const [comment, setComment] = useState('');
-  const [error, setError] = useState('');
+  const {error,success,setError,setSuccess,} = useToastMessages();
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
 

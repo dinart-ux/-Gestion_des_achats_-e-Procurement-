@@ -1,6 +1,8 @@
+
 import { useEffect, useMemo, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import { getRoleCode, getStoredUser } from '../service/roleUtils';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
 import './Dashboard.css';
 
@@ -44,6 +46,7 @@ function SummaryCard({ label, value, detail, icon, variant = '' }) {
 
 function BudgetDonut({ percent }) {
     const value = Math.max(0, Math.min(100, safeNumber(percent)));
+
     return (
         <div className="budget-donut-layout">
             <div
@@ -57,6 +60,7 @@ function BudgetDonut({ percent }) {
                     <span>consommé</span>
                 </div>
             </div>
+
             <div className="budget-donut-legend">
                 <div><span className="legend-dot legend-dot-used" /><span>Budget engagé</span></div>
                 <div><span className="legend-dot legend-dot-remaining" /><span>Budget restant</span></div>
@@ -85,6 +89,7 @@ function BudgetBar({ budget }) {
                     <strong>{formatMoney(engaged)}</strong><span> / {formatMoney(allocated)}</span>
                 </div>
             </div>
+
             <div
                 className={`budget-bar-track ${alert ? 'is-alert' : ''}`}
                 role="progressbar"
@@ -95,6 +100,7 @@ function BudgetBar({ budget }) {
             >
                 <div className={`budget-bar-fill ${alert ? 'is-alert' : ''}`} style={{ width: `${width}%` }} />
             </div>
+
             <div className="budget-bar-footer">
                 <span className={alert ? 'budget-percent warning-text' : 'budget-percent'}>
                     {formatNumber(percent)}% consommé
@@ -106,6 +112,8 @@ function BudgetBar({ budget }) {
 }
 
 export default function Dashboard() {
+    const { setError } = useToastMessages();
+
     const user = getStoredUser();
     const role = getRoleCode(user?.role ?? user?.roleCode);
     const canViewBudgets = ['ADMIN', 'SERVICE_ACHATS', 'MANAGER'].includes(role);
@@ -118,17 +126,23 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (!canViewBudgets) return undefined;
+
         let active = true;
 
         const loadBudgets = async () => {
             setLoadingBudgets(true);
             setBudgetError('');
+
             try {
                 const response = await workflowApi.get('budgets');
                 if (active) setBudgets(getArray(response?.data ?? response));
             } catch (error) {
                 if (active) {
-                    setBudgetError(error?.response?.data?.message || 'Impossible de charger les données budgétaires.');
+                    const message = error?.response?.data?.message
+                        || 'Impossible de charger les données budgétaires.';
+
+                    setBudgetError(message);
+                    setError(message);
                 }
             } finally {
                 if (active) setLoadingBudgets(false);
@@ -136,7 +150,10 @@ export default function Dashboard() {
         };
 
         loadBudgets();
-        return () => { active = false; };
+
+        return () => {
+            active = false;
+        };
     }, [canViewBudgets]);
 
     const budgetDefined = (budget) => {
@@ -154,6 +171,7 @@ export default function Dashboard() {
 
     const budgetsParService = useMemo(() => {
         const groups = {};
+
         budgets.forEach((budget) => {
             const serviceName = budget.service || null;
             const serviceId = budget.service_id ?? null;
@@ -169,6 +187,7 @@ export default function Dashboard() {
                     centres: [],
                 };
             }
+
             groups[key].centres.push(budget);
         });
 
@@ -176,6 +195,7 @@ export default function Dashboard() {
             const defined = group.centres.filter(budgetDefined);
             const allocated = defined.reduce((sum, budget) => sum + safeNumber(budget.montant_alloue), 0);
             const engaged = defined.reduce((sum, budget) => sum + safeNumber(budget.montant_engage), 0);
+
             return {
                 ...group,
                 montant_alloue: allocated,
@@ -186,6 +206,7 @@ export default function Dashboard() {
                     const spent = safeNumber(budget.montant_engage);
                     const rate = amount > 0 ? spent / amount * 100 : 0;
                     const threshold = budget.seuil_alerte_pct == null ? 80 : safeNumber(budget.seuil_alerte_pct);
+
                     return amount > 0 && (spent > amount || rate >= threshold || isTrue(budget.alerte_seuil));
                 }),
             };
@@ -206,24 +227,22 @@ export default function Dashboard() {
 
     const budgetAlerts = budgets.filter((budget) => {
         if (!budgetDefined(budget)) return false;
+
         const allocated = safeNumber(budget.montant_alloue);
         const engaged = safeNumber(budget.montant_engage);
+
         if (allocated <= 0) return false;
+
         const percent = engaged / allocated * 100;
         const threshold = budget.seuil_alerte_pct == null ? 80 : safeNumber(budget.seuil_alerte_pct);
+
         return engaged > allocated || isTrue(budget.alerte_seuil) || percent >= threshold;
     });
 
     const budgetNonDefinis = budgets.filter((budget) => !budgetDefined(budget));
-const dateActuelle = new Date().toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-});
+
     return (
         <main className="dashboard-page dashboard-page-compact">
-
-
             {canViewBudgets ? (
                 <section className="dashboard-section">
                     <div className="dashboard-section-heading">
@@ -237,6 +256,7 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
 
                     {loadingBudgets && <div className="dashboard-message">Chargement des budgets…</div>}
                     {budgetError && <div className="dashboard-message dashboard-message-error">{budgetError}</div>}
+
                     {!loadingBudgets && !budgetError && budgets.length === 0 && (
                         <div className="dashboard-message">Aucun budget n'est disponible pour cet exercice.</div>
                     )}
@@ -275,9 +295,11 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                             <p>Part du budget déjà engagée.</p>
                                         </div>
                                     </div>
+
                                     {budgetsDefinis.length > 0
                                         ? <BudgetDonut percent={consommationGlobale} />
                                         : <div className="dashboard-empty">Aucun budget n'est encore défini.</div>}
+
                                     <div className="budget-global-amounts">
                                         <div><span>Engagé</span><strong>{formatMoney(totalEngage)}</strong></div>
                                         <div><span>Disponible</span><strong>{formatMoney(totalDisponible)}</strong></div>
@@ -290,6 +312,7 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                             <h3>Consommation par {budgetView === 'service' ? 'service' : 'centre de coût'}</h3>
                                             <p>Les budgets les plus consommés en premier.</p>
                                         </div>
+
                                         <div className="budget-view-toggle" role="group" aria-label="Affichage du budget">
                                             <button type="button" className={budgetView === 'service' ? 'active' : ''} onClick={() => setBudgetView('service')}>Services</button>
                                             <button type="button" className={budgetView === 'centre' ? 'active' : ''} onClick={() => setBudgetView('centre')}>Centres</button>
@@ -305,6 +328,7 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                     ) : (
                                         <div className="dashboard-empty">Aucune donnée budgétaire à afficher.</div>
                                     )}
+
                                     {budgetChartRows.length > 6 && (
                                         <p className="dashboard-chart-note">Les 6 budgets les plus consommés sont affichés.</p>
                                     )}
@@ -317,13 +341,16 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                         <h3>Alertes budgétaires</h3>
                                         <p>Budgets proches du seuil ou en dépassement.</p>
                                     </div>
+
                                     <span className={`dashboard-alert-count ${budgetAlerts.length ? 'has-alerts' : ''}`}>
                                         {budgetAlerts.length} alerte(s)
                                     </span>
                                 </div>
 
                                 {budgetAlerts.length === 0 ? (
-                                    <div className="dashboard-alert-success"><span aria-hidden="true">✓</span> Aucun budget n'a atteint son seuil d'alerte.</div>
+                                    <div className="dashboard-alert-success">
+                                        <span aria-hidden="true">✓</span> Aucun budget n'a atteint son seuil d'alerte.
+                                    </div>
                                 ) : (
                                     <div className="dashboard-alert-list">
                                         {budgetAlerts.slice(0, 5).map((budget, index) => {
@@ -331,6 +358,7 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                             const engaged = safeNumber(budget.montant_engage);
                                             const percent = allocated > 0 ? engaged / allocated * 100 : 0;
                                             const overBudget = engaged > allocated;
+
                                             return (
                                                 <div className={`dashboard-alert-item ${overBudget ? 'alert-critical' : ''}`} key={`${budget.budget_id ?? budget.centre_cout_id ?? index}-${index}`}>
                                                     <span className="dashboard-alert-icon" aria-hidden="true">!</span>
@@ -345,7 +373,10 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                                 </div>
                                             );
                                         })}
-                                        {budgetAlerts.length > 5 && <p className="dashboard-chart-note">Les 5 premières alertes sont affichées. Consulte les détails des budgets pour la liste complète.</p>}
+
+                                        {budgetAlerts.length > 5 && (
+                                            <p className="dashboard-chart-note">Les 5 premières alertes sont affichées. Consulte les détails des budgets pour la liste complète.</p>
+                                        )}
                                     </div>
                                 )}
 
@@ -373,10 +404,16 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
                                         <table className="dashboard-table">
                                             <thead>
                                                 <tr>
-                                                    <th>Centre de coût</th><th>Budget alloué</th><th>Montant engagé</th>
-                                                    <th>Solde disponible</th><th>Consommation</th><th>Seuil</th><th>État</th>
+                                                    <th>Centre de coût</th>
+                                                    <th>Budget alloué</th>
+                                                    <th>Montant engagé</th>
+                                                    <th>Solde disponible</th>
+                                                    <th>Consommation</th>
+                                                    <th>Seuil</th>
+                                                    <th>État</th>
                                                 </tr>
                                             </thead>
+
                                             <tbody>
                                                 {budgets.map((budget, index) => {
                                                     const allocated = safeNumber(budget.montant_alloue);
@@ -389,19 +426,32 @@ const dateActuelle = new Date().toLocaleDateString('fr-FR', {
 
                                                     return (
                                                         <tr key={`${budget.budget_id ?? budget.centre_cout_id ?? index}-${index}`}>
-                                                            <td><strong>{budget.libelle || 'Centre de coût'}</strong><small>{budget.code || '—'}</small></td>
+                                                            <td>
+                                                                <strong>{budget.libelle || 'Centre de coût'}</strong>
+                                                                <small>{budget.code || '—'}</small>
+                                                            </td>
                                                             <td>{budgetDefined(budget) ? formatMoney(allocated) : 'Non défini'}</td>
                                                             <td>{budgetDefined(budget) ? formatMoney(engaged) : '—'}</td>
                                                             <td className={balance < 0 ? 'warning-text' : ''}>{budgetDefined(budget) ? formatMoney(balance) : '—'}</td>
-                                                            <td>{budgetDefined(budget) ? <div className="table-progress-cell"><div className="table-progress-track"><div className={`table-progress-fill ${alert ? 'is-alert' : ''}`} style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} /></div><span>{formatNumber(percent)}%</span></div> : '—'}</td>
+                                                            <td>
+                                                                {budgetDefined(budget) ? (
+                                                                    <div className="table-progress-cell">
+                                                                        <div className="table-progress-track">
+                                                                            <div className={`table-progress-fill ${alert ? 'is-alert' : ''}`} style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
+                                                                        </div>
+                                                                        <span>{formatNumber(percent)}%</span>
+                                                                    </div>
+                                                                ) : '—'}
+                                                            </td>
                                                             <td>{budgetDefined(budget) ? `${formatNumber(threshold)}%` : '—'}</td>
-                                                            <td>{!budgetDefined(budget)
-                                                                ? <span className="dashboard-status status-undefined">Non défini</span>
-                                                                : overBudget
-                                                                    ? <span className="dashboard-status status-danger">Dépassé</span>
-                                                                    : alert
-                                                                        ? <span className="dashboard-status status-warning">À surveiller</span>
-                                                                        : <span className="dashboard-status status-ok">Normal</span>}
+                                                            <td>
+                                                                {!budgetDefined(budget)
+                                                                    ? <span className="dashboard-status status-undefined">Non défini</span>
+                                                                    : overBudget
+                                                                        ? <span className="dashboard-status status-danger">Dépassé</span>
+                                                                        : alert
+                                                                            ? <span className="dashboard-status status-warning">À surveiller</span>
+                                                                            : <span className="dashboard-status status-ok">Normal</span>}
                                                             </td>
                                                         </tr>
                                                     );

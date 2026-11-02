@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
+import { useToastMessages } from '../components/notifications/ToastContext';
 import './Menu.css';
 import './Fournisseurs.css';
 
@@ -25,10 +26,9 @@ export default function Fournisseurs() {
   const [form, setForm] = useState(emptyForm);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [error, setError] = useState('');
+  const {error,success,setError,setSuccess,} = useToastMessages();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
   const savingRef = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
   const filteredItems = items.filter((supplier) => {

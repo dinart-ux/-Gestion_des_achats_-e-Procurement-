@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Fichiers à ne pas inclure dans Git
+/PLAN_CORRECTION_AUDIT.md
+/backend/.env.example
+/backend/src/main/java/com/example/backend/Controlleur/CourseRepository.java
+/docs/COMPTES_TEST.md
+/frontend/.env.example
+/frontend/src/components/notifications/

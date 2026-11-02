@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+
+import { useEffect, useMemo, useState } from 'react';
 
 import api from '../service/api';
 import workflowApi from '../service/workflowApi';
@@ -6,8 +7,8 @@ import { getRoleCode } from '../service/roleUtils';
 
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
-
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { useToastMessages } from '../components/notifications/ToastContext';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import './Utilisateurs.css';
 
@@ -67,10 +68,10 @@ export default function Utilisateurs() {
   const [form, setForm] = useState(formulaireVide);
   const [editingId, setEditingId] = useState(null);
 
-  const [message, setMessage] = useState('');
-  const [erreur, setErreur] = useState(false);
+  const { setError, setSuccess } = useToastMessages();
 
   const [chargement, setChargement] = useState(true);
+  const [chargementErreur, setChargementErreur] = useState(false);
   const [chargementServices, setChargementServices] = useState(true);
   const [chargementManagers, setChargementManagers] = useState(false);
   const [erreurManagers, setErreurManagers] = useState('');
@@ -91,6 +92,7 @@ export default function Utilisateurs() {
 
   async function chargerDonnees() {
     setChargement(true);
+    setChargementErreur(false);
 
     try {
       const [usersResponse, rolesResponse] = await Promise.all([
@@ -106,10 +108,9 @@ export default function Utilisateurs() {
         Array.isArray(rolesResponse.data) ? rolesResponse.data : []
       );
 
-      setErreur(false);
     } catch (error) {
-      setErreur(true);
-      setMessage(messageErreur(error));
+      setChargementErreur(true);
+      setError(messageErreur(error));
     } finally {
       setChargement(false);
     }
@@ -136,9 +137,8 @@ export default function Utilisateurs() {
       .catch((error) => {
         if (active) {
           setServices([]);
-          setErreur(true);
 
-          setMessage(
+          setError(
             `Impossible de charger les services : ${messageErreur(error)}`
           );
         }
@@ -242,8 +242,8 @@ export default function Utilisateurs() {
         user.managerId == null ? '' : String(user.managerId),
     });
 
-    setErreur(false);
-    setMessage('');
+    setError('');
+    setSuccess('');
     setErreurManagers('');
   };
 
@@ -256,7 +256,8 @@ export default function Utilisateurs() {
     setForm(formulaireVide);
     setManagers([]);
     setErreurManagers('');
-    setMessage('');
+    setError('');
+    setSuccess('');
   };
 
   // ----------------------------------------------------
@@ -275,16 +276,15 @@ export default function Utilisateurs() {
     event.preventDefault();
 
     setEnvoi(true);
-    setErreur(false);
-    setMessage('');
+    setError('');
+    setSuccess('');
 
     // Vérification des mots de passe
     if (
       !editingId &&
       form.password !== form.passwordConfirmation
     ) {
-      setErreur(true);
-      setMessage('Les deux mots de passe ne correspondent pas.');
+      setError('Les deux mots de passe ne correspondent pas.');
       setEnvoi(false);
 
       return;
@@ -324,9 +324,7 @@ export default function Utilisateurs() {
       form.roleCode === 'DEMANDEUR' &&
       !managerSelectionValide
     ) {
-      setErreur(true);
-
-      setMessage(
+      setError(
         'Sélectionnez un Manager actif du même service pour ce Demandeur.'
       );
 
@@ -341,24 +339,22 @@ export default function Utilisateurs() {
           `/utilisateurs/${encodeURIComponent(editingId)}`,
           payload
         );
+
+        setSuccess('Utilisateur modifié avec succès.');
       } else {
         await api.post('/utilisateurs', payload);
-      }
 
-      setMessage(
-        editingId
-          ? 'Utilisateur modifié avec succès.'
-          : 'Utilisateur créé avec succès.'
-      );
+        setSuccess('Utilisateur créé avec succès.');
+      }
 
       setEditingId(null);
       setForm(formulaireVide);
       setManagers([]);
 
       await chargerDonnees();
+
     } catch (error) {
-      setErreur(true);
-      setMessage(messageErreur(error));
+      setError(messageErreur(error));
     } finally {
       setEnvoi(false);
     }
@@ -378,22 +374,22 @@ export default function Utilisateurs() {
     if (!confirmation) return;
 
     setEnvoi(true);
-    setErreur(false);
-    setMessage('');
+    setError('');
+    setSuccess('');
 
     try {
       await api.delete(
         `/utilisateurs/${encodeURIComponent(matricule)}`
       );
 
-      setMessage(
+      setSuccess(
         'Utilisateur désactivé. Ses données métier ont été conservées.'
       );
 
       await chargerDonnees();
+
     } catch (error) {
-      setErreur(true);
-      setMessage(messageErreur(error));
+      setError(messageErreur(error));
     } finally {
       setEnvoi(false);
     }
@@ -465,9 +461,7 @@ export default function Utilisateurs() {
   return (
     <div className="utilisateurs-container">
 
-      {/* ================================================
-          EN-TÊTE DE LA PAGE
-      ================================================ */}
+      {/* EN-TÊTE DE LA PAGE */}
 
       <div className="users-page-heading">
         <div>
@@ -488,24 +482,9 @@ export default function Utilisateurs() {
         />
       </div>
 
-      {/* ================================================
-          MESSAGES DE NOTIFICATION
-      ================================================ */}
-
-      {message && (
-        <div
-          className={`users-message ${erreur ? 'is-error' : 'is-success'}`}
-          role={erreur ? 'alert' : 'status'}
-        >
-          {message}
-        </div>
-      )}
-
       <div className="utilisateurs-layout">
 
-        {/* ==============================================
-            FORMULAIRE DE CRÉATION / MODIFICATION
-        ============================================== */}
+        {/* FORMULAIRE DE CRÉATION / MODIFICATION */}
 
         <section
           className="utilisateur-form-section"
@@ -533,7 +512,6 @@ export default function Utilisateurs() {
 
             <div className="users-form-grid">
 
-              {/* Matricule */}
               {!editingId && (
                 <div className="users-field">
                   <label htmlFor="matricule">
@@ -552,7 +530,6 @@ export default function Utilisateurs() {
                 </div>
               )}
 
-              {/* Prénom */}
               <div className="users-field">
                 <label htmlFor="prenom">
                   Prénom <span>*</span>
@@ -570,7 +547,6 @@ export default function Utilisateurs() {
                 />
               </div>
 
-              {/* Nom */}
               <div className="users-field">
                 <label htmlFor="nom">
                   Nom <span>*</span>
@@ -588,7 +564,6 @@ export default function Utilisateurs() {
                 />
               </div>
 
-              {/* E-mail */}
               <div className="users-field users-field-full">
                 <label htmlFor="email">
                   Adresse e-mail <span>*</span>
@@ -607,7 +582,6 @@ export default function Utilisateurs() {
                 />
               </div>
 
-              {/* Téléphone */}
               <div className="users-field users-field-full">
                 <label htmlFor="telephone">
                   Téléphone
@@ -625,7 +599,6 @@ export default function Utilisateurs() {
                 />
               </div>
 
-              {/* Service */}
               <div className="users-field">
                 <label htmlFor="service">
                   Service <span>*</span>
@@ -661,7 +634,6 @@ export default function Utilisateurs() {
                 )}
               </div>
 
-              {/* Rôle */}
               <div className="users-field">
                 <label htmlFor="roleCode">
                   Rôle <span>*</span>
@@ -687,7 +659,6 @@ export default function Utilisateurs() {
                 </select>
               </div>
 
-              {/* Manager responsable */}
               {form.roleCode === 'DEMANDEUR' && (
                 <div className="users-field users-field-full">
                   <label htmlFor="managerId">
@@ -736,7 +707,6 @@ export default function Utilisateurs() {
                 </div>
               )}
 
-              {/* Mots de passe */}
               {!editingId && (
                 <>
                   <div className="users-field">
@@ -781,7 +751,6 @@ export default function Utilisateurs() {
 
             </div>
 
-            {/* Actions du formulaire */}
             <div className="users-form-actions">
               {editingId && (
                 <IconActionButton
@@ -818,9 +787,7 @@ export default function Utilisateurs() {
           </form>
         </section>
 
-        {/* ==============================================
-            LISTE DES UTILISATEURS
-        ============================================== */}
+        {/* LISTE DES UTILISATEURS */}
 
         <section
           className="utilisateur-list-section"
@@ -840,26 +807,24 @@ export default function Utilisateurs() {
           </div>
 
           {/* Recherche et filtres */}
+
           <div className="users-list-controls">
 
             <label className="users-search">
               <span className="sr-only">
                 Rechercher un utilisateur
               </span>
-                {/*<Search
-                  aria-hidden="true"
-                  focusable="false"
-                />*/}
-            <div className="supplier-search-box">
-              <span className="supplier-search-icon">⌕</span>
 
-              <input
-                type="text"
-                placeholder="Nom, matricule ou e-mail…"
-                value={recherche}
-                onChange={reinitialiserFiltres(setRecherche)}
-              />
-            </div>
+              <div className="supplier-search-box">
+                <span className="supplier-search-icon">⌕</span>
+
+                <input
+                  type="text"
+                  placeholder="Nom, matricule ou e-mail…"
+                  value={recherche}
+                  onChange={reinitialiserFiltres(setRecherche)}
+                />
+              </div>
             </label>
 
             <label
@@ -903,13 +868,14 @@ export default function Utilisateurs() {
           </div>
 
           {/* États de chargement et résultats */}
+
           {chargement ? (
             <p className="users-empty-state" role="status">
               Chargement des utilisateurs…
             </p>
-          ) : erreur && utilisateurs.length === 0 ? (
+          ) : chargementErreur && utilisateurs.length === 0 ? (
             <p className="users-empty-state" role="alert">
-              Impossible de charger les utilisateurs. {message}
+              Impossible de charger les utilisateurs. Consultez la notification.
             </p>
           ) : utilisateurs.length === 0 ? (
             <p className="users-empty-state">
@@ -921,7 +887,6 @@ export default function Utilisateurs() {
             </p>
           ) : (
             <>
-              {/* Tableau */}
               <div className="table-responsive">
                 <table>
                   <thead>
@@ -1028,6 +993,7 @@ export default function Utilisateurs() {
               </div>
 
               {/* Pagination */}
+
               <div className="users-pagination">
                 <span>
                   {(pageCourante - 1) * TAILLE_PAGE + 1}
