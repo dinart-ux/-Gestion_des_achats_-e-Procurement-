@@ -236,6 +236,7 @@ export default function Menu({ onLogout }) {
     );
 
     const [showMenu, setShowMenu] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarHovered, setSidebarHovered] = useState(false);
 
@@ -926,7 +927,7 @@ export default function Menu({ onLogout }) {
                                             role="menuitem"
                                             onClick={() => {
                                                 setShowMenu(false);
-                                                handleLogout();
+                                                setShowLogoutModal(true);
                                             }}
                                         >
                                             <LogOut aria-hidden="true" />
@@ -1071,6 +1072,53 @@ export default function Menu({ onLogout }) {
                             />
                         </Routes>
                     </section>
+                    {/* MODALE DE CONFIRMATION DE DÉCONNEXION */}
+                        {showLogoutModal && (
+                            <div
+                                className="logout-modal-overlay"
+                                onClick={() => setShowLogoutModal(false)}
+                            >
+                                <div
+                                    className="logout-modal"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby="logout-modal-title"
+                                    onClick={(event) => event.stopPropagation()}
+                                >
+                                    <div className="logout-modal-icon">
+                                        <LogOut size={26} />
+                                    </div>
+
+                                    <h2 id="logout-modal-title">
+                                        Confirmer la déconnexion
+                                    </h2>
+
+                                    <p>
+                                        Êtes-vous sûr de vouloir vous déconnecter
+                                        de votre compte ?
+                                    </p>
+
+                                    <div className="logout-modal-actions">
+                                        <button
+                                            type="button"
+                                            className="logout-cancel-btn"
+                                            onClick={() => setShowLogoutModal(false)}
+                                        >
+                                            Annuler
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="logout-confirm-btn"
+                                            onClick={handleLogout}
+                                        >
+                                            <LogOut size={16} />
+                                            Oui, me déconnecter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                 </main>
             </div>
         </div>

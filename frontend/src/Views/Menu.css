@@ -2865,3 +2865,131 @@
 .main-area > .page-content {
     margin-top: 12px !important;
 }
+
+/* ========================================
+   MODALE DE CONFIRMATION DE DÉCONNEXION
+======================================== */
+
+.logout-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: rgba(8, 13, 43, 0.65);
+    backdrop-filter: blur(4px);
+    animation: logoutFadeIn 0.2s ease;
+}
+
+.logout-modal {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 28px;
+    background: #ffffff;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: logoutSlideIn 0.25s ease;
+}
+
+.logout-modal-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.logout-modal h2 {
+    margin: 0 0 12px;
+    color: #101a4c;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.logout-modal p {
+    margin: 0 0 26px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.logout-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.logout-modal-actions button {
+    min-height: 43px;
+    padding: 11px 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-cancel-btn {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.logout-cancel-btn:hover {
+    background: #e2e8f0;
+}
+
+.logout-confirm-btn {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.logout-confirm-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+@keyframes logoutFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes logoutSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 480px) {
+    .logout-modal {
+        padding: 26px 20px;
+    }
+
+    .logout-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .logout-modal-actions button {
+        width: 100%;
+    }
+}
