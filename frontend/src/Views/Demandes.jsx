@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import workflowApi from '../service/workflowApi';
+import workflowApi from '../service/workflowApi.js';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
-import { useToastMessages } from '../components/notifications/ToastContext';
+import { useToastMessages } from '../components/notifications/ToastContext.jsx';
 import './Menu.css';
 import './Demandes.css';
 
@@ -29,6 +29,7 @@ export default function Demandes() {
   const [categories, setCategories] = useState([]);
 
   const [selected, setSelected] = useState(null);
+  const [detailTab, setDetailTab] = useState('informations');
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
@@ -158,6 +159,7 @@ export default function Demandes() {
   const openDetail = async (id) => {
     try {
       const { data } = await workflowApi.get(`/demandes/${id}`);
+      setDetailTab('informations');
       setSelected(data);
       setError('');
     } catch (e) {
@@ -722,142 +724,162 @@ export default function Demandes() {
 
       {/* Modale de détails */}
       {selected && (
-        <div
-          className="request-modal-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setSelected(null);
-            }
-          }}
-        >
-          <section
-            className="content-card detail-card request-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="request-modal-title"
-          >
-            <div className="section-heading request-modal-heading">
-              <div>
-                <h2 id="request-modal-title">
-                  {selected.reference} — {selected.objet}
-                </h2>
-
-                <p>
-                  {selected.centre_cout} · {ariary(selected.montant_estime)} · {selected.statut}
-                </p>
+        <div className="request-modal-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setSelected(null);
+        }}>
+          <section className="content-card detail-card request-modal request-detail-modal"
+            role="dialog" aria-modal="true" aria-labelledby="request-modal-title">
+            <div className="request-detail-header">
+              <div className="request-detail-heading">
+                <div className="request-detail-icon" aria-hidden="true">▤</div>
+                <div className="request-detail-title">
+                  <span className="request-detail-eyebrow">DÉTAILS DE LA DEMANDE</span>
+                  <h2 id="request-modal-title">{selected.reference || 'Demande d’achat'}</h2>
+                  <p>{selected.objet || 'Sans objet renseigné'}</p>
+                </div>
               </div>
+              <div className="request-detail-header-actions">
+                <span className={`request-detail-status status-${String(selected.statut || '').toLowerCase()}`}>
+                  {selected.statut || 'Statut inconnu'}
+                </span>
+                <button type="button" className="request-modal-close"
+                  onClick={() => setSelected(null)} aria-label="Fermer les détails de la demande">×</button>
+              </div>
+            </div>
 
-              <button
-                type="button"
-                className="request-modal-close"
-                onClick={() => setSelected(null)}
-                aria-label="Fermer les détails de la demande"
-                title="Fermer"
-              >
-                ×
+            <div className="request-detail-summary">
+              <div className="request-detail-summary-item">
+                <span>Centre de coût</span><strong>{selected.centre_cout || '—'}</strong>
+              </div>
+              <div className="request-detail-summary-item">
+                <span>Demandeur</span>
+                <strong>{[selected.demandeur_prenom, selected.demandeur_nom].filter(Boolean).join(' ') || '—'}</strong>
+              </div>
+              <div className="request-detail-summary-item">
+                <span>Montant estimé</span><strong>{ariary(selected.montant_estime)}</strong>
+              </div>
+            </div>
+
+            <div className="request-detail-tabs" role="tablist" aria-label="Contenu de la demande">
+              <button type="button" role="tab" id="request-tab-informations"
+                aria-selected={detailTab === 'informations'} aria-controls="request-panel-informations"
+                className={`request-detail-tab ${detailTab === 'informations' ? 'active' : ''}`}
+                onClick={() => setDetailTab('informations')}>
+                <span aria-hidden="true">▦</span> Informations
+                <span className="request-detail-tab-count">{selected.lignes?.length || 0}</span>
+              </button>
+              <button type="button" role="tab" id="request-tab-historique"
+                aria-selected={detailTab === 'historique'} aria-controls="request-panel-historique"
+                className={`request-detail-tab ${detailTab === 'historique' ? 'active' : ''}`}
+                onClick={() => setDetailTab('historique')}>
+                <span aria-hidden="true">◷</span> Historique de validation
+                <span className="request-detail-tab-count">{selected.historique?.length || 0}</span>
               </button>
             </div>
 
-            <p>
-              {selected.justification || 'Aucune justification.'}
-            </p>
+            {detailTab === 'informations' ? (
+              <div id="request-panel-informations" className="request-detail-panel"
+                role="tabpanel" aria-labelledby="request-tab-informations">
+                <section className="request-detail-section">
+                  <div className="request-detail-section-heading">
+                    <div><h3>Informations générales</h3>
+                      <p>Les informations principales de cette demande d’achat.</p></div>
+                  </div>
+                  <div className="request-detail-info-grid">
+                    <div className="request-detail-info-card"><span>Référence</span><strong>{selected.reference || '—'}</strong></div>
+                    <div className="request-detail-info-card"><span>Demandeur</span>
+                      <strong>{[selected.demandeur_prenom, selected.demandeur_nom].filter(Boolean).join(' ') || '—'}</strong></div>
+                    <div className="request-detail-info-card"><span>Centre de coût</span><strong>{selected.centre_cout || '—'}</strong></div>
+                    <div className="request-detail-info-card"><span>Statut actuel</span><strong>{selected.statut || '—'}</strong></div>
+                    <div className="request-detail-info-card request-detail-info-card-wide"><span>Objet de la demande</span><strong>{selected.objet || '—'}</strong></div>
+                    <div className="request-detail-info-card request-detail-info-card-wide"><span>Justification</span>
+                      <p>{selected.justification || 'Aucune justification renseignée.'}</p></div>
+                  </div>
+                </section>
 
-            <div className="request-modal-columns">
-
-              {/* Articles demandés */}
-              <div className="request-modal-lines">
-                <h3>Articles demandés</h3>
-
-                <div className="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Désignation</th>
-                        <th>Catégorie</th>
-                        <th>Qté</th>
-                        <th>Prix unitaire</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {selected.lignes?.map((l) => (
-                        <tr key={l.id}>
-                          <td>{l.designation}</td>
-                          <td>{l.categorie || '—'}</td>
-                          <td>{l.quantite}</td>
-                          <td>{ariary(l.prix_unitaire_estime)}</td>
-                          <td>
-                            {ariary(
-                              l.quantite * l.prix_unitaire_estime
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <section className="request-detail-section request-detail-lines-section">
+                  <div className="request-detail-section-heading">
+                    <div><h3>Articles et services demandés</h3>
+                      <p>Le détail des lignes et des montants estimés.</p></div>
+                    <span className="request-detail-count">{selected.lignes?.length || 0} ligne(s)</span>
+                  </div>
+                  {selected.lignes?.length ? (
+                    <div className="table-wrap request-detail-table-wrap">
+                      <table className="request-detail-table">
+                        <thead><tr><th>Désignation</th><th>Catégorie</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th></tr></thead>
+                        <tbody>{selected.lignes.map((l) => (
+                          <tr key={l.id}>
+                            <td>{l.designation}</td><td>{l.categorie || '—'}</td><td>{l.quantite}</td>
+                            <td>{ariary(l.prix_unitaire_estime)}</td>
+                            <td className="request-detail-total">{ariary(Number(l.quantite || 0) * Number(l.prix_unitaire_estime || 0))}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    </div>
+                  ) : <p className="request-detail-empty">Aucun article ou service enregistré.</p>}
+                </section>
               </div>
-
-              {/* Historique */}
-              <div className="request-modal-history">
-                <h3>Historique</h3>
-
-                <ol className="history-list">
-                  {selected.historique?.map((h, i) => (
-                    <li key={`${h.date_changement}-${i}`}>
-                      <strong>{h.nouveau_statut}</strong>
-                      {' — '}
-                      {h.commentaire || '—'}
-
-                      <small>
-                        {h.utilisateur_prenom} {h.utilisateur_nom}
-                        {' · '}
-                        {new Date(h.date_changement).toLocaleString('fr-FR')}
-                      </small>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </div>
-
-            {/* Actions du brouillon */}
-            {selected.statut === 'BROUILLON' && (
-              <div className="form-actions">
-                <ActionIconButton
-                  icon="edit"
-                  label={`Modifier la demande ${selected.reference}`}
-                  onClick={() => editDraft(selected)}
-                />
-
-                {selected.peut_supprimer && (
-                  <ActionIconButton
-                    icon="delete"
-                    label={`Supprimer le brouillon ${selected.reference}`}
-                    onClick={() => removeDraft(selected.id)}
-                    disabled={saving}
-                  />
-                )}
-
-                <IconActionButton
-                  icon="submit"
-                  className="action-button"
-                  disabled={saving}
-                  onClick={() => submit(selected.id)}
-                >
-                  Soumettre à validation
-                </IconActionButton>
+            ) : (
+              <div id="request-panel-historique" className="request-detail-panel"
+                role="tabpanel" aria-labelledby="request-tab-historique">
+                <section className="request-detail-section">
+                  <div className="request-detail-section-heading">
+                    <div><h3>Historique de validation</h3>
+                      <p>Suivez les différentes étapes de traitement de votre demande.</p></div>
+                    <span className="request-detail-count">{selected.historique?.length || 0} événement(s)</span>
+                  </div>
+                  {selected.historique?.length ? (
+                    <ol className="request-detail-timeline">
+                      {selected.historique.map((h, i) => {
+                        const historyStatus = String(h.nouveau_statut || '').toLowerCase();
+                        const isPending = historyStatus.includes('attente') || historyStatus.includes('cours');
+                        const isRejected = historyStatus.includes('refus') || historyStatus.includes('rejet');
+                        return (
+                          <li key={`${h.date_changement}-${i}`}
+                            className={`request-detail-timeline-item ${isPending ? 'is-pending' : ''} ${isRejected ? 'is-rejected' : ''}`}>
+                            <span className="request-detail-timeline-marker" aria-hidden="true">
+                              {isPending ? '…' : isRejected ? '×' : '✓'}
+                            </span>
+                            <div className="request-detail-history-card">
+                              <div className="request-detail-history-top">
+                                <strong>{h.nouveau_statut || 'Événement'}</strong>
+                                <time dateTime={h.date_changement || undefined}>
+                                  {h.date_changement ? new Date(h.date_changement).toLocaleString('fr-FR') : 'Date inconnue'}
+                                </time>
+                              </div>
+                              <p className="request-detail-history-author">
+                                {`${h.utilisateur_prenom || ''} ${h.utilisateur_nom || ''}`.trim() || 'Utilisateur non renseigné'}
+                              </p>
+                              <p className="request-detail-history-comment">{h.commentaire || 'Aucun commentaire.'}</p>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  ) : (
+                    <div className="request-detail-history-empty">
+                      <span aria-hidden="true">◷</span><strong>Aucun historique disponible</strong>
+                      <p>Les événements de validation apparaîtront ici lorsque la demande sera traitée.</p>
+                    </div>
+                  )}
+                </section>
               </div>
             )}
 
+            {selected.statut === 'BROUILLON' && (
+              <div className="form-actions request-detail-actions">
+                <ActionIconButton icon="edit" label={`Modifier la demande ${selected.reference}`}
+                  onClick={() => editDraft(selected)} />
+                {selected.peut_supprimer && (
+                  <ActionIconButton icon="delete" label={`Supprimer le brouillon ${selected.reference}`}
+                    onClick={() => removeDraft(selected.id)} disabled={saving} />
+                )}
+                <IconActionButton icon="submit" className="action-button" disabled={saving}
+                  onClick={() => submit(selected.id)}>Soumettre à validation</IconActionButton>
+              </div>
+            )}
             <div className="request-modal-footer">
-              <button
-                type="button"
-                className="request-modal-close-button"
-                onClick={() => setSelected(null)}
-              >
-                Fermer
-              </button>
+              <button type="button" className="request-modal-close-button" onClick={() => setSelected(null)}>Fermer</button>
             </div>
           </section>
         </div>

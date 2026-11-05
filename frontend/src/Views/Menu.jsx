@@ -312,6 +312,28 @@ export default function Menu({ onLogout }) {
         setUser(storedUser);
     }, [navigate]);
 
+            /* Fermer la navigation après un changement de page */
+        useEffect(() => {
+            setSidebarOpen(false);
+        }, [location.pathname, location.hash]);
+
+        /* Fermer la navigation avec la touche Échap */
+        useEffect(() => {
+            if (!sidebarOpen) return undefined;
+
+            const handleEscape = (event) => {
+                if (event.key === 'Escape') {
+                    setSidebarOpen(false);
+                }
+            };
+
+            document.addEventListener('keydown', handleEscape);
+
+            return () => {
+                document.removeEventListener('keydown', handleEscape);
+            };
+        }, [sidebarOpen]);
+
     /* Éléments de navigation autorisés */
     const visibleItems = useMemo(
         () => navItems.filter((item) => item.roles.includes(role)),
@@ -425,7 +447,19 @@ export default function Menu({ onLogout }) {
                 sidebarOpen ? ' navigation-open' : ''
             }`}
         >
-            <div className={`app-layout${sidebarHovered ? ' sidebar-hovered' : ''}`}>
+                <div className={`app-layout${sidebarHovered ? ' sidebar-hovered' : ''}`}>
+
+                {/* FOND SOMBRE DU MENU MOBILE */}
+                {sidebarOpen && (
+                    <button
+                        type="button"
+                        className="sidebar-backdrop"
+                        onClick={() => setSidebarOpen(false)}
+                        aria-label="Fermer le menu de navigation"
+                        tabIndex={0}
+                    />
+                )}
+
                 {/* BARRE LATÉRALE */}
                 <aside
                     className={`sidebar${
@@ -774,7 +808,7 @@ export default function Menu({ onLogout }) {
                     <header className="menu-header">
                         <button
                             type="button"
-                            className="sidebar-toggle"
+                            className={`sidebar-toggle${sidebarOpen ? ' is-open' : ''}`}
                             onClick={() => setSidebarOpen((open) => !open)}
                             aria-expanded={sidebarOpen}
                             aria-controls="main-navigation"
@@ -784,13 +818,15 @@ export default function Menu({ onLogout }) {
                                     : 'Ouvrir le menu'
                             }
                         >
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                {sidebarOpen ? (
+                            {sidebarOpen ? (
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="m6 6 12 12M18 6 6 18" />
-                                ) : (
+                                </svg>
+                            ) : (
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M4 6h16M4 12h16M4 18h16" />
-                                )}
-                            </svg>
+                                </svg>
+                            )}
                         </button>
                     </header>
 

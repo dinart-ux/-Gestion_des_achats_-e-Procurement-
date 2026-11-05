@@ -2993,3 +2993,397 @@
         width: 100%;
     }
 }
+
+/* =====================================================
+   RESPONSIVE MODERNE — MENU E-PROCUREMENT SPAT
+   À AJOUTER À LA FIN DE Menu.css
+===================================================== */
+
+/* Sécurité générale */
+.menu-container {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+}
+
+.app-layout {
+    min-width: 0;
+}
+
+.main-area {
+    min-width: 0;
+    width: 100%;
+}
+
+.page-content {
+    min-width: 0;
+    width: 100%;
+}
+
+/* Bouton hamburger */
+.sidebar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #101a4c;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(16, 26, 76, 0.07);
+    transition: background .2s ease, transform .2s ease;
+}
+
+.sidebar-toggle:hover {
+    background: #f0f2ff;
+}
+
+.sidebar-toggle svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Fond sombre du menu coulissant */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(8, 13, 43, .58);
+    backdrop-filter: blur(3px);
+    cursor: pointer;
+    animation: sidebarBackdropIn .2s ease;
+}
+
+@keyframes sidebarBackdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* =====================================================
+   TABLETTES ET PETITS ORDINATEURS
+===================================================== */
+
+@media (max-width: 1024px) {
+
+    .app-layout,
+    .app-layout:has(.sidebar:hover),
+    .app-layout:has(.sidebar:focus-within),
+    .app-layout.sidebar-hovered {
+        display: block;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    /* Sidebar en tiroir */
+    .sidebar,
+    .sidebar:hover,
+    .sidebar:focus-within,
+    .sidebar.sidebar-expanded {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1001;
+
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+        height: 100dvh;
+        min-height: 100dvh;
+        max-height: 100dvh;
+
+        padding: 22px 14px;
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        transform: translateX(-105%);
+        visibility: hidden;
+
+        transition:
+            transform .28s cubic-bezier(.4, 0, .2, 1),
+            visibility .28s ease;
+    }
+
+    .sidebar.sidebar-open {
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+
+        transform: translateX(0);
+        visibility: visible;
+    }
+
+    /* Garder les libellés visibles dans le tiroir */
+    .sidebar .sidebar-brand {
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 0 4px 20px;
+    }
+
+    .sidebar .sidebar-brand-text {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .sidebar .sidebar-section-title {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .sidebar .nav-button,
+    .sidebar .sidebar-footer {
+        justify-content: flex-start;
+        gap: 12px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .sidebar .nav-label {
+        display: inline-block;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .sidebar .settings-chevron {
+        display: block;
+    }
+
+    .sidebar .settings-submenu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 3px 0 4px 14px;
+        padding-left: 8px;
+        border-left: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    .sidebar .sidebar-footer {
+        justify-content: flex-start;
+        gap: 9px;
+    }
+
+    .sidebar .sidebar-footer-text {
+        display: inline;
+    }
+
+    /* Contenu principal */
+    .main-area {
+        width: 100%;
+        min-height: 100vh;
+        padding: 16px 22px 28px !important;
+    }
+
+    /* Réafficher le header qui était masqué */
+    .main-area > .menu-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        height: auto !important;
+        min-height: 48px !important;
+        margin: 0 0 12px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: visible !important;
+    }
+
+    .sidebar-toggle {
+        display: inline-flex;
+    }
+
+    .sidebar-backdrop {
+        display: block;
+    }
+
+    .main-area > .dashboard-hero.app-page-hero {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .main-area > .page-content {
+        margin-top: 18px !important;
+    }
+}
+
+/* =====================================================
+   TÉLÉPHONES
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .main-area {
+        padding: 12px 13px 24px !important;
+    }
+
+    .main-area > .menu-header {
+        min-height: 44px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .sidebar-toggle {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+        border-radius: 11px;
+    }
+
+    /* Bandeau violet */
+    .main-area > .dashboard-hero.app-page-hero {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 17px !important;
+        padding: 17px 16px !important;
+        border-radius: 15px;
+    }
+
+    .app-page-hero-content {
+        width: 100%;
+    }
+
+    .app-page-hero-content h1 {
+        font-size: clamp(19px, 5vw, 23px);
+        line-height: 1.25 !important;
+        overflow-wrap: anywhere;
+    }
+
+    .app-page-hero-content p {
+        font-size: 12px;
+        line-height: 1.5 !important;
+    }
+
+    /* Profil */
+    .app-page-hero-side {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .app-page-hero .profile-info {
+        justify-content: flex-start;
+        gap: 9px;
+        min-width: 0;
+    }
+
+    .app-page-hero .profile-details {
+        display: flex;
+        min-width: 0;
+    }
+
+    .app-page-hero .profile-details .user-name {
+        max-width: 145px;
+        font-size: 11px;
+    }
+
+    .app-page-hero .profile-details .user-role {
+        font-size: 10px;
+    }
+
+    .app-page-hero .profile-avatar {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+        flex-basis: 36px;
+    }
+
+    .app-page-hero .app-page-date {
+        flex-shrink: 0;
+        padding: 6px 8px;
+        font-size: 9px;
+    }
+
+    .app-page-hero .app-page-date > span:last-child {
+        font-size: 9px;
+    }
+
+    /* Contenu */
+    .main-area > .page-content {
+        margin-top: 15px !important;
+        overflow-x: auto;
+    }
+
+    /* Modale de déconnexion */
+    .logout-modal {
+        width: 100%;
+        max-width: 360px;
+        padding: 24px 18px;
+    }
+
+    .logout-modal h2 {
+        font-size: 18px;
+    }
+
+    .logout-modal p {
+        font-size: 13px;
+    }
+}
+
+/* =====================================================
+   PETITS TÉLÉPHONES
+===================================================== */
+
+@media (max-width: 380px) {
+
+    .main-area {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .app-page-hero .profile-details .user-name {
+        max-width: 105px;
+    }
+
+    .app-page-hero .app-page-date {
+        padding: 5px 6px;
+    }
+
+    .app-page-hero-content h1 {
+        font-size: 19px;
+    }
+
+    .sidebar {
+        width: min(280px, 85vw);
+        min-width: min(280px, 85vw);
+        max-width: min(280px, 85vw);
+    }
+
+    .sidebar.sidebar-open {
+        width: min(280px, 85vw);
+        min-width: min(280px, 85vw);
+        max-width: min(280px, 85vw);
+    }
+}
+
+/* =====================================================
+   ACCESSIBILITÉ
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-backdrop,
+    .sidebar-toggle {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+

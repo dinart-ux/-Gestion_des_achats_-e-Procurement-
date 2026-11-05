@@ -1,0 +1,860 @@
+
+/* =========================================
+   COMMANDES - DESIGN PREMIUM SAAS
+========================================= */
+
+.commande-page {
+  width: 100%;
+  min-width: 0;
+  padding: 26px;
+  color: #202947;
+  animation: commandeFadeIn 0.3s ease;
+}
+
+@keyframes commandeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* HEADER */
+
+.commande-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+.commande-eyebrow {
+  display: inline-block;
+  color: #7562d8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.commande-header h1 {
+  margin: 0;
+  color: #172044;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.commande-header p {
+  margin: 7px 0 0;
+  color: #8991a8;
+  font-size: 13px;
+}
+
+.commande-refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 17px;
+  border: 1px solid #e4e7f1;
+  border-radius: 9px;
+  background: #fff;
+  color: #4f5a79;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.commande-refresh-button:hover {
+  border-color: #7865dc;
+  color: #6653cc;
+  background: #f8f7ff;
+}
+
+.commande-refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.commande-refresh-button > span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.commande-spin {
+  display: inline-block;
+  animation: commandeSpin 0.8s linear infinite;
+}
+
+@keyframes commandeSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ALERTS */
+
+.commande-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  margin-bottom: 18px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.commande-alert > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.commande-alert-error {
+  color: #b42335;
+  background: #fff1f2;
+  border: 1px solid #ffd7dc;
+}
+
+.commande-alert-error > span {
+  color: #fff;
+  background: #dc3545;
+}
+
+.commande-alert-success {
+  color: #167647;
+  background: #edfaf3;
+  border: 1px solid #ccefdc;
+}
+
+.commande-alert-success > span {
+  color: #fff;
+  background: #20a464;
+}
+
+/* STATISTICS */
+
+.commande-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+  margin-bottom: 25px;
+}
+
+.commande-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #edf0f6;
+  border-radius: 13px;
+  box-shadow: 0 3px 12px rgba(23, 32, 68, 0.035);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.commande-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(23, 32, 68, 0.07);
+}
+
+.commande-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 47px;
+  height: 47px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.icon-purple {
+  color: #755de0;
+  background: #f0edff;
+}
+
+.icon-blue {
+  color: #3284d6;
+  background: #eaf4ff;
+  font-size: 14px;
+}
+
+.icon-green {
+  color: #159b67;
+  background: #e8f8f0;
+}
+
+.commande-stat-card > div:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.commande-stat-label {
+  color: #8991a8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.commande-stat-card strong {
+  margin: 5px 0;
+  color: #192448;
+  font-size: 21px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.commande-stat-card small {
+  color: #a2a9ba;
+  font-size: 10px;
+}
+
+/* MAIN CARD */
+
+.commande-card {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #edf0f6;
+  border-radius: 13px;
+  box-shadow: 0 3px 14px rgba(23, 32, 68, 0.035);
+}
+
+.commande-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 21px 23px;
+  border-bottom: 1px solid #f0f1f6;
+}
+
+.commande-section-heading h2 {
+  margin: 0;
+  color: #202947;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.commande-section-heading p {
+  margin: 6px 0 0;
+  color: #9299ad;
+  font-size: 11px;
+}
+
+.commande-count {
+  padding: 7px 11px;
+  border-radius: 7px;
+  color: #6755ca;
+  background: #f2efff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* TABLE */
+
+.commande-table-container,
+.commande-lines-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.commande-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.commande-table thead {
+  background: #f9faff;
+}
+
+.commande-table th {
+  padding: 15px 17px;
+  color: #929ab0;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+}
+
+.commande-table td {
+  padding: 15px 17px;
+  color: #606b86;
+  border-top: 1px solid #f0f2f7;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.commande-table tbody tr {
+  transition: background 0.15s;
+}
+
+.commande-table tbody tr:hover {
+  background: #fafaff;
+}
+
+.commande-number {
+  color: #26345f;
+  font-weight: 800;
+}
+
+.commande-supplier {
+  color: #5c6680;
+  font-weight: 600;
+}
+
+.commande-amount {
+  color: #25315a !important;
+  font-weight: 800;
+}
+
+/* STATUS */
+
+.commande-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.commande-status-success {
+  color: #148253;
+  background: #e8f8f0;
+}
+
+.commande-status-warning {
+  color: #a76a0a;
+  background: #fff5df;
+}
+
+.commande-status-danger {
+  color: #c33749;
+  background: #fff0f1;
+}
+
+.commande-status-info {
+  color: #4967b9;
+  background: #edf2ff;
+}
+
+/* RECEIVE BUTTON */
+
+.commande-receive-button {
+  min-height: 33px;
+  padding: 0 11px;
+  border: 1px solid #e4e0ff !important;
+  border-radius: 7px;
+  color: #6854d0 !important;
+  background: #f7f5ff !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  transition: 0.2s;
+}
+
+.commande-receive-button:hover {
+  color: #fff !important;
+  background: #6c59d5 !important;
+  border-color: #6c59d5 !important;
+}
+
+/* EMPTY STATE */
+
+.commande-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 240px;
+  padding: 30px;
+  text-align: center;
+}
+
+.commande-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 55px;
+  height: 55px;
+  margin-bottom: 15px;
+  border-radius: 15px;
+  color: #7865d9;
+  background: #f1efff;
+  font-size: 25px;
+}
+
+.commande-empty h3 {
+  margin: 0;
+  color: #293453;
+  font-size: 14px;
+}
+
+.commande-empty p {
+  margin: 8px 0 0;
+  color: #9ba2b4;
+  font-size: 11px;
+}
+
+.commande-loader {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 12px;
+  border: 3px solid #e9e6ff;
+  border-top-color: #7460d8;
+  border-radius: 50%;
+  animation: commandeSpin 0.8s linear infinite;
+}
+
+/* MODAL */
+
+.commande-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  overflow-y: auto;
+  background: rgba(12, 19, 48, 0.58);
+  backdrop-filter: blur(5px);
+  animation: commandeFadeIn 0.2s ease;
+}
+
+.commande-modal {
+  width: min(1050px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 20px 70px rgba(7, 14, 42, 0.25);
+  animation: commandeModalIn 0.25s ease;
+}
+
+@keyframes commandeModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.commande-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 23px 26px;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.commande-modal-header h2 {
+  margin: 0;
+  color: #192448;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.commande-modal-header p {
+  margin: 7px 0 0;
+  color: #9299ad;
+  font-size: 11px;
+}
+
+.commande-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9px;
+  color: #7b849b;
+  background: #f3f4f8;
+  font-size: 23px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.commande-close-button:hover {
+  color: #c33749;
+  background: #fff0f1;
+}
+
+.commande-close-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ORDER INFO */
+
+.commande-order-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 17px 25px;
+  background: #fafaff;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.commande-order-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.commande-order-info span {
+  color: #9299ad;
+  font-size: 10px;
+}
+
+.commande-order-info strong {
+  color: #26345f;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* MODAL CONTENT */
+
+.commande-modal-content {
+  padding: 23px 25px;
+}
+
+.commande-modal-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.commande-modal-section-title h3 {
+  margin: 0;
+  color: #26314f;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.commande-modal-section-title p {
+  margin: 5px 0 0;
+  color: #969db0;
+  font-size: 10px;
+}
+
+.commande-modal-section-title > span {
+  color: #6d5bd0;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* LINES TABLE */
+
+.commande-lines-container {
+  border: 1px solid #edf0f6;
+  border-radius: 9px;
+}
+
+.commande-lines-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.commande-lines-table thead {
+  background: #f8f9fd;
+}
+
+.commande-lines-table th {
+  padding: 12px 11px;
+  color: #8e96aa;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.commande-lines-table td {
+  padding: 12px 11px;
+  color: #65708a;
+  border-top: 1px solid #edf0f6;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.commande-lines-table td strong {
+  color: #29375f;
+}
+
+.commande-line-designation {
+  color: #283555 !important;
+  font-weight: 700;
+}
+
+.commande-quantity-input {
+  width: 85px;
+  height: 34px;
+  padding: 0 9px;
+  outline: none;
+  border: 1px solid #dfe3ef;
+  border-radius: 7px;
+  color: #26345f;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.commande-quantity-input:focus {
+  border-color: #7764db;
+  box-shadow: 0 0 0 3px rgba(119, 100, 219, 0.1);
+}
+
+.commande-quantity-input:disabled {
+  background: #f3f4f7;
+  cursor: not-allowed;
+}
+
+.commande-no-lines {
+  padding: 20px;
+  color: #9ba2b4;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* OBSERVATION */
+
+.commande-observation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 21px;
+}
+
+.commande-observation > span {
+  color: #394563;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.commande-observation textarea {
+  width: 100%;
+  min-height: 85px;
+  padding: 12px;
+  resize: vertical;
+  outline: none;
+  border: 1px solid #e1e5ef;
+  border-radius: 8px;
+  color: #394563;
+  background: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.commande-observation textarea:focus {
+  border-color: #7764db;
+  box-shadow: 0 0 0 3px rgba(119, 100, 219, 0.08);
+}
+
+.commande-observation textarea::placeholder {
+  color: #b1b7c6;
+}
+
+/* MODAL FOOTER */
+
+.commande-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 17px 25px;
+  border-top: 1px solid #edf0f6;
+  background: #fcfcfe;
+}
+
+.commande-cancel-button,
+.commande-submit-button {
+  min-height: 39px;
+  padding: 0 17px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.commande-cancel-button {
+  border: 1px solid #e2e5ed;
+  color: #69738b;
+  background: #fff;
+}
+
+.commande-cancel-button:hover {
+  background: #f4f5f9;
+}
+
+.commande-submit-button {
+  border: 1px solid #6d59d3;
+  color: #fff;
+  background: #6d59d3;
+  box-shadow: 0 3px 8px rgba(109, 89, 211, 0.18);
+}
+
+.commande-submit-button:hover {
+  background: #5945c0;
+  border-color: #5945c0;
+}
+
+.commande-cancel-button:disabled,
+.commande-submit-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* RESPONSIVE TABLET */
+
+@media (max-width: 900px) {
+  .commande-page {
+    padding: 20px;
+  }
+
+  .commande-stats {
+    gap: 11px;
+  }
+
+  .commande-stat-card {
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .commande-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .commande-stat-card strong {
+    font-size: 17px;
+  }
+}
+
+/* RESPONSIVE MOBILE */
+
+@media (max-width: 650px) {
+  .commande-page {
+    padding: 13px;
+  }
+
+  .commande-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 19px;
+  }
+
+  .commande-header h1 {
+    font-size: 23px;
+  }
+
+  .commande-refresh-button {
+    width: 100%;
+  }
+
+  .commande-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .commande-stat-card {
+    padding: 14px;
+  }
+
+  .commande-stat-card strong {
+    font-size: 18px;
+  }
+
+  .commande-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 17px;
+  }
+
+  .commande-modal-overlay {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .commande-modal {
+    max-height: 94vh;
+    border-radius: 11px;
+  }
+
+  .commande-modal-header {
+    padding: 17px;
+  }
+
+  .commande-modal-header h2 {
+    font-size: 16px;
+  }
+
+  .commande-order-info {
+    grid-template-columns: 1fr;
+    gap: 13px;
+    padding: 15px 17px;
+  }
+
+  .commande-modal-content {
+    padding: 17px;
+  }
+
+  .commande-modal-footer {
+    padding: 13px 17px;
+    flex-wrap: wrap;
+  }
+
+  .commande-cancel-button,
+  .commande-submit-button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 380px) {
+  .commande-page {
+    padding: 9px;
+  }
+
+  .commande-stat-card {
+    padding: 12px;
+  }
+
+  .commande-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .commande-cancel-button,
+  .commande-submit-button {
+    width: 100%;
+  }
+}

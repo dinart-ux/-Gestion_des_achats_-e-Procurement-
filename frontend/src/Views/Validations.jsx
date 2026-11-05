@@ -4,6 +4,7 @@ import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
 import { useToastMessages } from '../components/notifications/ToastContext.jsx';
 import './Menu.css';
+import './Validations.css';
 
 const EMPTY_FILTERS = { serviceId: '', montantMin: '', montantMax: '', demandeur: '' };
 const DECISION_LABELS = {
@@ -27,6 +28,7 @@ export default function Validations() {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState(null);
+  const [detailTab, setDetailTab] = useState('informations');
   const [comment, setComment] = useState('');
   const {error,success,setError,setSuccess,} = useToastMessages();
   const [notice, setNotice] = useState('');
@@ -57,6 +59,26 @@ export default function Validations() {
       .then(({ data }) => setServices(Array.isArray(data) ? data : []))
       .catch((e) => setError(errorMessage(e, 'Impossible de charger les services.')));
   }, [load]);
+
+  // Garder la page derrière la modale immobile et permettre sa fermeture avec Échap.
+  useEffect(() => {
+    if (!selected) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && !busy) {
+        closeDetail();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [selected, busy]);
 
   const applyFilters = (event) => {
     event.preventDefault();
@@ -94,6 +116,7 @@ export default function Validations() {
     try {
       const { data } = await workflowApi.get(`/demandes/${demandeId}`);
       setSelected({ ...data, demande_id: data.demande_id ?? data.id ?? demandeId });
+      setDetailTab('informations');
       setComment('');
     } catch (e) {
       setError(errorMessage(e, 'Impossible de charger le détail de la demande.'));
@@ -217,36 +240,281 @@ export default function Validations() {
         )}
       </section>
 
-      {selected && <section className="content-card detail-card">
-        <div className="section-heading"><div>
-          <h2>{selected.reference || 'Demande'} — {selected.objet || 'Détail'}</h2>
-          <p>{selected.centre_cout || 'Centre de coût non renseigné'} · {formatAmount(selected.montant_estime)}</p>
-          <p>Statut : {selected.statut || '—'}</p>
-        </div><IconActionButton icon="cancel" type="button" className="quiet-button" onClick={closeDetail} disabled={busy}>Fermer</IconActionButton></div>
-        <p>{selected.justification || 'Aucune justification.'}</p>
-        <h3>Lignes de la demande</h3>
-        <div className="table-wrap"><table>
-          <thead><tr><th>Désignation</th><th>Quantité</th><th>Prix estimé unitaire</th><th>Total estimé</th></tr></thead>
-          <tbody>{Array.isArray(selected.lignes) && selected.lignes.length > 0
-            ? selected.lignes.map((line, index) => <tr key={line.id ?? index}>
-              <td>{line.designation || '—'}</td><td>{line.quantite ?? 0}</td>
-              <td>{formatAmount(line.prix_unitaire_estime)}</td>
-              <td>{formatAmount(Number(line.quantite || 0) * Number(line.prix_unitaire_estime || 0))}</td>
-            </tr>)
-            : <tr><td colSpan="4">Aucune ligne disponible.</td></tr>}
-          </tbody>
-        </table></div>
-        {view === 'pending' && <>
-          <label className="comment-label" htmlFor="commentaire-validation">Commentaire
-            <textarea id="commentaire-validation" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Obligatoire pour un rejet ou une demande de précisions" rows={3} disabled={busy} />
-          </label>
-          <div className="form-actions">
-            <IconActionButton icon="reject" type="button" disabled={busy} className="quiet-button danger-button" onClick={() => decide('REJETEE')}>Rejeter</IconActionButton>
-            <IconActionButton icon="info" type="button" disabled={busy} className="quiet-button" onClick={() => decide('PRECISION_DEMANDEE')}>Demander des précisions</IconActionButton>
-            <IconActionButton icon="validate" type="button" disabled={busy} className="action-button success-button" onClick={() => decide('VALIDEE')}>Valider</IconActionButton>
-          </div>
-        </>}
-      </section>}
+      {selected && (
+        <div
+          className="validation-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !busy) closeDetail();
+          }}
+        >
+          <section
+            className="validation-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="validation-modal-title"
+          >
+            <header className="validation-modal-header">
+              <div className="validation-modal-title-group">
+                <div className="validation-modal-icon" aria-hidden="true">▤</div>
+                <div>
+                  <p className="validation-modal-eyebrow">DÉTAILS DE LA DEMANDE</p>
+                  <h2 id="validation-modal-title">
+                    {selected.reference || 'Demande'}
+                  </h2>
+                  <p className="validation-modal-subtitle">
+                    {selected.objet || 'Objet non renseigné'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="validation-modal-close"
+                onClick={closeDetail}
+                disabled={busy}
+                aria-label="Fermer la fenêtre"
+                title="Fermer"
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="validation-modal-summary">
+              <div className="validation-summary-item">
+                <span>Demandeur</span>
+                <strong>
+                  {selected.demandeur_prenom || ''} {selected.demandeur_nom || ''}
+                </strong>
+              </div>
+              <div className="validation-summary-item">
+                <span>Centre de coût</span>
+                <strong>{selected.centre_cout || '—'}</strong>
+              </div>
+              <div className="validation-summary-item">
+                <span>Montant estimé</span>
+                <strong>{formatAmount(selected.montant_estime)}</strong>
+              </div>
+              <div className="validation-summary-item">
+                <span>Statut actuel</span>
+                <strong className="validation-modal-status">{selected.statut || '—'}</strong>
+              </div>
+            </div>
+
+            <div className="validation-modal-tabs" role="tablist" aria-label="Détails de la demande">
+              <button
+                type="button"
+                role="tab"
+                id="validation-tab-informations"
+                aria-selected={detailTab === 'informations'}
+                aria-controls="validation-panel-informations"
+                className={detailTab === 'informations' ? 'active' : ''}
+                onClick={() => setDetailTab('informations')}
+              >
+                Informations
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="validation-tab-historique"
+                aria-selected={detailTab === 'historique'}
+                aria-controls="validation-panel-historique"
+                className={detailTab === 'historique' ? 'active' : ''}
+                onClick={() => setDetailTab('historique')}
+              >
+                Historique de validation
+                {Array.isArray(selected.historique) && (
+                  <span className="validation-tab-count">{selected.historique.length}</span>
+                )}
+              </button>
+            </div>
+
+            <div className="validation-modal-body">
+              {detailTab === 'informations' ? (
+                <div
+                  id="validation-panel-informations"
+                  role="tabpanel"
+                  aria-labelledby="validation-tab-informations"
+                  className="validation-info-panel"
+                >
+                  <div className="validation-detail-section">
+                    <div className="validation-section-heading">
+                      <div>
+                        <h3>Informations générales</h3>
+                        <p>Récapitulatif de la demande d'achat</p>
+                      </div>
+                    </div>
+                    <div className="validation-info-grid">
+                      <div className="validation-info-item">
+                        <span>Référence</span>
+                        <strong>{selected.reference || '—'}</strong>
+                      </div>
+                      <div className="validation-info-item">
+                        <span>Objet de la demande</span>
+                        <strong>{selected.objet || '—'}</strong>
+                      </div>
+                      <div className="validation-info-item">
+                        <span>Demandeur</span>
+                        <strong>{selected.demandeur_prenom || ''} {selected.demandeur_nom || '—'}</strong>
+                      </div>
+                      <div className="validation-info-item">
+                        <span>Centre de coût</span>
+                        <strong>{selected.centre_cout || '—'}</strong>
+                      </div>
+                      <div className="validation-info-item">
+                        <span>Service</span>
+                        <strong>{selected.service_nom || selected.service || '—'}</strong>
+                      </div>
+                      <div className="validation-info-item">
+                        <span>Statut</span>
+                        <strong>{selected.statut || '—'}</strong>
+                      </div>
+                    </div>
+                    <div className="validation-justification">
+                      <span>Justification</span>
+                      <p>{selected.justification || 'Aucune justification renseignée.'}</p>
+                    </div>
+                  </div>
+
+                  <div className="validation-detail-section">
+                    <div className="validation-section-heading">
+                      <div>
+                        <h3>Articles et services demandés</h3>
+                        <p>{selected.lignes?.length || 0} ligne(s) dans cette demande</p>
+                      </div>
+                    </div>
+                    <div className="validation-lines-table-wrap">
+                      <table className="validation-lines-table">
+                        <thead>
+                          <tr>
+                            <th>Désignation</th>
+                            <th>Quantité</th>
+                            <th>Prix unitaire</th>
+                            <th>Total estimé</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Array.isArray(selected.lignes) && selected.lignes.length > 0
+                            ? selected.lignes.map((line, index) => (
+                              <tr key={line.id ?? index}>
+                                <td>{line.designation || '—'}</td>
+                                <td>{line.quantite ?? 0}</td>
+                                <td>{formatAmount(line.prix_unitaire_estime)}</td>
+                                <td>{formatAmount(Number(line.quantite || 0) * Number(line.prix_unitaire_estime || 0))}</td>
+                              </tr>
+                            ))
+                            : <tr><td colSpan="4" className="validation-empty-cell">Aucune ligne disponible.</td></tr>}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  id="validation-panel-historique"
+                  role="tabpanel"
+                  aria-labelledby="validation-tab-historique"
+                  className="validation-history-panel"
+                >
+                  <div className="validation-section-heading">
+                    <div>
+                      <h3>Historique de validation</h3>
+                      <p>Suivez les différentes étapes du traitement de cette demande.</p>
+                    </div>
+                  </div>
+                  {Array.isArray(selected.historique) && selected.historique.length > 0 ? (
+                    <ol className="validation-timeline">
+                      {selected.historique.map((item, index) => (
+                        <li className="validation-timeline-item" key={`${item.date_changement || 'event'}-${index}`}>
+                          <span className="validation-timeline-marker" aria-hidden="true">
+                            {index + 1}
+                          </span>
+                          <div className="validation-timeline-card">
+                            <div className="validation-timeline-card-top">
+                              <strong>{item.nouveau_statut || 'Mise à jour'}</strong>
+                              <time>
+                                {item.date_changement
+                                  ? new Date(item.date_changement).toLocaleString('fr-FR')
+                                  : 'Date non disponible'}
+                              </time>
+                            </div>
+                            <p className="validation-timeline-author">
+                              {item.utilisateur_prenom || ''} {item.utilisateur_nom || ''}
+                            </p>
+                            <p className="validation-timeline-comment">
+                              {item.commentaire || 'Aucun commentaire.'}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <div className="validation-history-empty">
+                      <span aria-hidden="true">◷</span>
+                      <strong>Aucun historique disponible</strong>
+                      <p>Les étapes de validation apparaîtront ici dès qu'une action sera enregistrée.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {view === 'pending' && (
+              <div className="validation-modal-decision">
+                <label className="validation-comment-label" htmlFor="commentaire-validation">
+                  Commentaire
+                  <textarea
+                    id="commentaire-validation"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Obligatoire pour un rejet ou une demande de précisions"
+                    rows={2}
+                    disabled={busy}
+                  />
+                </label>
+                <div className="validation-decision-actions">
+                  <IconActionButton
+                    icon="reject"
+                    type="button"
+                    disabled={busy}
+                    className="quiet-button danger-button"
+                    onClick={() => decide('REJETEE')}
+                  >
+                    Rejeter
+                  </IconActionButton>
+                  <IconActionButton
+                    icon="info"
+                    type="button"
+                    disabled={busy}
+                    className="quiet-button"
+                    onClick={() => decide('PRECISION_DEMANDEE')}
+                  >
+                    Demander des précisions
+                  </IconActionButton>
+                  <IconActionButton
+                    icon="validate"
+                    type="button"
+                    disabled={busy}
+                    className="action-button success-button"
+                    onClick={() => decide('VALIDEE')}
+                  >
+                    Valider
+                  </IconActionButton>
+                </div>
+              </div>
+            )}
+
+            <footer className="validation-modal-footer">
+              <button
+                type="button"
+                className="validation-modal-close-button"
+                onClick={closeDetail}
+                disabled={busy}
+              >
+                Fermer
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
