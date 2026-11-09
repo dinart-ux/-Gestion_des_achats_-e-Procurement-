@@ -14,14 +14,24 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.HashMap;
 
-/** Accès SQL aligné sur le script SQL réel. */
+
 @Service
 public class AchatWorkflowService {
-    private final JdbcTemplate jdbc;
 
-    public AchatWorkflowService(JdbcTemplate jdbc) {
+    private final JdbcTemplate jdbc;
+    private final NotificationService notificationService;
+    private final WorkflowEventService workflowEventService;
+
+    public AchatWorkflowService(
+            JdbcTemplate jdbc,
+            NotificationService notificationService,
+            WorkflowEventService workflowEventService) {
+
         this.jdbc = jdbc;
+        this.notificationService = notificationService;
+        this.workflowEventService = workflowEventService;
     }
 
     public List<Map<String, Object>> demandes(String email, String role) {
@@ -129,43 +139,238 @@ public class AchatWorkflowService {
         return Map.of("id", id, "message", "Utilisateur créé avec succès");
     }
 
-    public Map<String, Object> detailDemande(long id) {
-        Map<String, Object> result = jdbc.queryForMap("""
-                SELECT d.id AS id, d.reference AS reference,
-                        d.objet AS objet, d.justification AS justification,
-                        d.montant_estime AS montant_estime, d.statut AS statut,
-                        d.date_creation AS date_creation, d.date_soumission AS date_soumission,
-                        d.demandeur_id AS demandeur_id, d.centre_cout_id AS centre_cout_id,
-                        u.nom AS demandeur_nom, u.prenom AS demandeur_prenom,
-                        cc.code AS centre_cout_code, cc.libelle AS centre_cout
-                FROM public.demande_achat d
-                JOIN public.utilisateurs u ON u.id = d.demandeur_id
-                JOIN public.centre_cout cc ON cc.id = d.centre_cout_id
-                WHERE d.id=?
-                """, id);
-        result.put("lignes", jdbc.queryForList("""
-                SELECT l.id AS id, l.categorie_id AS categorie_id,
-                    l.type AS type, l.designation AS designation,
-                    l.quantite AS quantite, l.prix_unitaire_estime AS prix_unitaire_estime,
-                    c.nom AS categorie
-                FROM public.ligne_demande l 
-                LEFT JOIN public.categorie c ON c.id = l.categorie_id
-                WHERE l.demande_id=? ORDER BY l.id
-                """, id));
-        result.put("historique", jdbc.queryForList("""
-                SELECT h.ancien_statut AS ancien_statut, h.nouveau_statut AS nouveau_statut,
-                    h.commentaire AS commentaire, h.date_changement AS date_changement,
-                    u.nom AS utilisateur_nom, u.prenom AS utilisateur_prenom
-                FROM public.historique_statut h
-                LEFT JOIN public.utilisateurs u ON u.id = h.utilisateur_id
-                WHERE h.demande_id=? ORDER BY h.date_changement, h.id
-                """, id));
-        Boolean validationsExistantes = jdbc.queryForObject(
-                "SELECT EXISTS(SELECT 1 FROM public.validation WHERE demande_id=?)",
-                Boolean.class, id);
-        result.put("peut_supprimer", !Boolean.TRUE.equals(validationsExistantes));
-        return result;
+    
+public Map<String, Object> detailDemande(long id) {
+    Map<String, Object> result = jdbc.queryForMap("""
+            SELECT d.id AS id, d.reference AS reference,
+                    d.objet AS objet, d.justification AS justification,
+                    d.montant_estime AS montant_estime, d.statut AS statut,
+                    d.date_creation AS date_creation, d.date_soumission AS date_soumission,
+                    d.demandeur_id AS demandeur_id, d.centre_cout_id AS centre_cout_id,
+                    u.nom AS demandeur_nom, u.prenom AS demandeur_prenom,
+                    cc.code AS centre_cout_code, cc.libelle AS centre_cout
+            FROM public.demande_achat d
+            JOIN public.utilisateurs u ON u.id = d.demandeur_id
+            JOIN public.centre_cout cc ON cc.id = d.centre_cout_id
+            WHERE d.id=?
+            """, id);
+
+    // =====================================================
+    // 1. ARTICLES DEMANDES
+    // =====================================================
+
+    result.put("lignes", jdbc.queryForList("""
+            SELECT l.id AS id, l.categorie_id AS categorie_id,
+                l.type AS type, l.designation AS designation,
+                l.quantite AS quantite,
+                l.prix_unitaire_estime AS prix_unitaire_estime,
+                c.nom AS categorie
+            FROM public.ligne_demande l
+            LEFT JOIN public.categorie c ON c.id = l.categorie_id
+            WHERE l.demande_id=?
+            ORDER BY l.id
+            """, id));
+
+    // =====================================================
+    // 2. HISTORIQUE DES CHANGEMENTS DE STATUT
+    // =====================================================
+
+    result.put("historique", jdbc.queryForList("""
+            SELECT h.ancien_statut AS ancien_statut,
+                h.nouveau_statut AS nouveau_statut,
+                h.commentaire AS commentaire,
+                h.date_changement AS date_changement,
+                u.nom AS utilisateur_nom,
+                u.prenom AS utilisateur_prenom
+            FROM public.historique_statut h
+            LEFT JOIN public.utilisateurs u ON u.id = h.utilisateur_id
+            WHERE h.demande_id=?
+            ORDER BY h.date_changement, h.id
+            """, id));
+
+    // =====================================================
+    // 3. CIRCUIT DE VALIDATION
+    // =====================================================
+
+    result.put("validations", jdbc.queryForList("""
+            SELECT
+                v.id AS id,
+                v.demande_id AS demande_id,
+                v.niveau_id AS niveau_id,
+                nv.ordre AS ordre,
+                nv.role_id AS role_id,
+                nv.seuil_montant AS seuil_montant,
+                v.tentative AS tentative,
+                v.decision AS decision,
+                v.commentaire AS commentaire,
+                v.date_decision AS date_decision,
+                v.valideur_id AS valideur_id,
+                u.nom AS valideur_nom,
+                u.prenom AS valideur_prenom
+            FROM public.validation v
+            JOIN public.niveau_validation nv ON nv.id = v.niveau_id
+            LEFT JOIN public.utilisateurs u ON u.id = v.valideur_id
+            WHERE v.demande_id=?
+            ORDER BY v.tentative, nv.ordre, v.id
+            """, id));
+
+    // =====================================================
+    // 4. BON DE COMMANDE
+    // =====================================================
+
+    List<Map<String, Object>> commandes = jdbc.queryForList("""
+            SELECT
+                bc.id AS id,
+                bc.numero AS numero,
+                bc.demande_id AS demande_id,
+                bc.offre_id AS offre_id,
+                bc.fournisseur_id AS fournisseur_id,
+                bc.cree_par_id AS cree_par_id,
+                bc.montant_total AS montant_total,
+                bc.statut AS statut,
+                bc.date_emission AS date_emission,
+                bc.date_livraison_prevue AS date_livraison_prevue,
+                f.raison_sociale AS fournisseur,
+                u.nom AS createur_nom,
+                u.prenom AS createur_prenom
+            FROM public.bon_commande bc
+            JOIN public.fournisseur f ON f.id = bc.fournisseur_id
+            LEFT JOIN public.utilisateurs u ON u.id = bc.cree_par_id
+            WHERE bc.demande_id=?
+            ORDER BY bc.date_emission DESC, bc.id DESC
+            LIMIT 1
+            """, id);
+
+    Map<String, Object> commande = null;
+
+    // =====================================================
+    // 5. OFFRE RETENUE ET LIGNES DU BON DE COMMANDE
+    // =====================================================
+
+    if (!commandes.isEmpty()) {
+        commande = commandes.get(0);
+
+        Object offreId = commande.get("offre_id");
+
+        if (offreId instanceof Number numeroOffre) {
+            List<Map<String, Object>> offresRetenues = jdbc.queryForList("""
+                    SELECT
+                        o.id AS id,
+                        o.demande_id AS demande_id,
+                        o.fournisseur_id AS fournisseur_id,
+                        o.montant_total AS montant_total,
+                        o.delai_livraison_jours AS delai_livraison_jours,
+                        o.conditions AS conditions,
+                        o.statut AS statut,
+                        o.date_offre AS date_offre,
+                        f.raison_sociale AS fournisseur,
+                        f.adresse AS fournisseur_adresse,
+                        f.telephone AS fournisseur_telephone,
+                        f.email AS fournisseur_email
+                    FROM public.offre o
+                    JOIN public.fournisseur f ON f.id = o.fournisseur_id
+                    WHERE o.id=?
+                    """, numeroOffre.longValue());
+
+            result.put(
+                    "offre_retenue",
+                    offresRetenues.isEmpty() ? null : offresRetenues.get(0)
+            );
+        } else {
+            result.put("offre_retenue", null);
+        }
+
+        // Articles commandés avec quantités reçues et restantes
+        List<Map<String, Object>> lignesCommande = jdbc.queryForList("""
+                SELECT
+                    lbc.id AS id,
+                    lbc.ligne_demande_id AS ligne_demande_id,
+                    lbc.designation AS designation,
+                    lbc.quantite AS quantite,
+                    lbc.prix_unitaire AS prix_unitaire,
+
+                    COALESCE((
+                        SELECT SUM(lr.quantite_recue)
+                        FROM public.ligne_reception lr
+                        WHERE lr.ligne_bc_id = lbc.id
+                    ), 0) AS quantite_deja_recue,
+
+                    GREATEST(
+                        lbc.quantite - COALESCE((
+                            SELECT SUM(lr.quantite_recue)
+                            FROM public.ligne_reception lr
+                            WHERE lr.ligne_bc_id = lbc.id
+                        ), 0),
+                        0
+                    ) AS quantite_restante
+
+                FROM public.ligne_bon_commande lbc
+                WHERE lbc.bon_commande_id=?
+                ORDER BY lbc.id
+                """, commande.get("id"));
+
+        commande.put("lignes", lignesCommande);
+
+        // =================================================
+        // 6. HISTORIQUE DES RECEPTIONS
+        // =================================================
+
+        List<Map<String, Object>> receptions = jdbc.queryForList("""
+                SELECT
+                    r.id AS id,
+                    r.bon_commande_id AS bon_commande_id,
+                    r.receptionnaire_id AS receptionnaire_id,
+                    r.date_reception AS date_reception,
+                    r.type_reception AS type_reception,
+                    r.observation AS observation,
+                    u.nom AS receptionnaire_nom,
+                    u.prenom AS receptionnaire_prenom
+                FROM public.reception r
+                LEFT JOIN public.utilisateurs u
+                    ON u.id = r.receptionnaire_id
+                WHERE r.bon_commande_id=?
+                ORDER BY r.date_reception, r.id
+                """, commande.get("id"));
+
+        for (Map<String, Object> reception : receptions) {
+            reception.put("lignes", jdbc.queryForList("""
+                    SELECT
+                        lr.id AS id,
+                        lr.ligne_bc_id AS ligne_bc_id,
+                        lr.quantite_recue AS quantite_recue,
+                        lbc.designation AS designation,
+                        lbc.quantite AS quantite_commandee
+                    FROM public.ligne_reception lr
+                    JOIN public.ligne_bon_commande lbc
+                        ON lbc.id = lr.ligne_bc_id
+                    WHERE lr.reception_id=?
+                    ORDER BY lr.id
+                    """, reception.get("id")));
+        }
+
+        commande.put("receptions", receptions);
+        result.put("receptions", receptions);
+
+    } else {
+        result.put("offre_retenue", null);
+        result.put("receptions", List.of());
     }
+
+    result.put("commande", commande);
+
+    // =====================================================
+    // 7. POSSIBILITE DE SUPPRESSION
+    // =====================================================
+
+    Boolean validationsExistantes = jdbc.queryForObject(
+            "SELECT EXISTS(SELECT 1 FROM public.validation WHERE demande_id=?)",
+            Boolean.class, id);
+
+    result.put("peut_supprimer", !Boolean.TRUE.equals(validationsExistantes));
+
+    return result;
+}
+
 
     public Map<String, Object> demandeAccessible(long id, String email, String role) {
         Map<String, Object> demande = detailDemande(id);
@@ -183,7 +388,16 @@ public class AchatWorkflowService {
     @Transactional
     public Map<String, Object> soumettre(long id, String email) {
         int uid = userId(email);
-        Map<String, Object> demande = jdbc.queryForMap("SELECT statut AS statut, demandeur_id AS demandeur FROM public.demande_achat WHERE id=? FOR UPDATE", id);
+        Map<String, Object> demande = jdbc.queryForMap("""
+        SELECT d.statut AS statut,
+               d.demandeur_id AS demandeur,
+               d.reference AS reference,
+               u.matricule AS matricule
+        FROM public.demande_achat d
+        JOIN public.utilisateurs u ON u.id = d.demandeur_id
+        WHERE d.id = ?
+        FOR UPDATE OF d
+        """, id);
         verifierProprietaire(demande, uid);
         if (!"BROUILLON".equals(demande.get("statut"))) throw new IllegalArgumentException("Seul un brouillon peut être soumis.");
         int count = jdbc.queryForObject("SELECT count(*) FROM public.ligne_demande WHERE demande_id=?", Integer.class, id);
@@ -243,8 +457,67 @@ public class AchatWorkflowService {
         }
         jdbc.update("UPDATE public.demande_achat SET statut='SOUMISE', date_soumission=now() WHERE id=?", id);
         historique(id, "BROUILLON", "SOUMISE", uid, "Demande soumise");
+
+        // Notification privée envoyée au demandeur après validation de la transaction
+        Map<String, Object> notification = new LinkedHashMap<>();
+        notification.put("type", "success");
+        notification.put("message", "Votre demande " + demande.get("reference")
+                + " a été soumise et transmise pour validation.");
+        notification.put("demandeId", id);
+        notification.put("reference", demande.get("reference"));
+        notification.put("nouveauStatut", "SOUMISE");
+
+        notificationService.notifierApresCommit(
+        (String) demande.get("matricule"),
+        notification
+);
+
+        // Événement métier envoyé au demandeur.
+        Map<String, Object> evenement = new LinkedHashMap<>();
+
+        evenement.put("type", "DEMANDE_SOUMISE");
+        evenement.put("demandeId", id);
+        evenement.put("reference", demande.get("reference"));
+        evenement.put("nouveauStatut", "SOUMISE");
+        evenement.put("message", "Votre demande vient d'être soumise.");
+
+        workflowEventService.publierApresCommit(
+                (String) demande.get("matricule"),
+                evenement
+        );
+        // Notifier le manager responsable de la demande.
+        List<String> matriculesManager = jdbc.queryForList("""
+            SELECT m.matricule
+            FROM public.utilisateurs d
+            JOIN public.utilisateurs m ON m.id = d.manager_id
+            WHERE d.id = ?
+            """,
+            String.class,
+            uid
+        );
+
+        for (String matriculeManager : matriculesManager) {
+
+            Map<String, Object> evenementManager = new LinkedHashMap<>();
+
+            evenementManager.put("type", "DEMANDE_SOUMISE");
+            evenementManager.put("demandeId", id);
+            evenementManager.put("reference", demande.get("reference"));
+            evenementManager.put("nouveauStatut", "SOUMISE");
+            evenementManager.put(
+                    "message",
+                    "Une nouvelle demande " + demande.get("reference")
+                            + " attend votre validation."
+            );
+
+            workflowEventService.publierApresCommit(
+                    matriculeManager,
+                    evenementManager
+            );
+        }
+
         return detailDemande(id);
-    }
+            }
 
     private void verifierManagerResponsable(int demandeurId, long demandeId, Integer serviceCentre) {
         Map<String, Object> demandeur = jdbc.queryForMap("""
@@ -365,8 +638,15 @@ public class AchatWorkflowService {
         if (!"VALIDEE".equals(decision) && (request.commentaire() == null || request.commentaire().isBlank()))
             throw new IllegalArgumentException("Un commentaire est obligatoire pour un rejet ou une demande de précision.");
         int uid = userId(email);
-        Map<String, Object> demandeVerrouillee = jdbc.queryForMap(
-                "SELECT statut FROM public.demande_achat WHERE id=? FOR UPDATE", demandeId);
+        Map<String, Object> demandeVerrouillee = jdbc.queryForMap("""
+                SELECT d.statut AS statut,
+                    d.reference AS reference,
+                    u.matricule AS matricule
+                FROM public.demande_achat d
+                JOIN public.utilisateurs u ON u.id = d.demandeur_id
+                WHERE d.id = ?
+                FOR UPDATE OF d
+                """, demandeId);
         if (!"SOUMISE".equals(demandeVerrouillee.get("statut"))) {
             throw new IllegalArgumentException("Seule une demande soumise peut être traitée.");
         }
@@ -449,6 +729,53 @@ jdbc.update("""
     demandeId
 );
         historique(demandeId, oldStatus, newStatus, uid, request.commentaire());
+        Map<String, Object> notification = new LinkedHashMap<>();
+
+String message = switch (decision) {
+    case "VALIDEE" -> newStatus.equals("VALIDEE")
+            ? "Votre demande " + demandeVerrouillee.get("reference")
+                + " a été validée définitivement."
+            : "Une étape de validation de votre demande "
+                + demandeVerrouillee.get("reference") + " a été validée.";
+
+    case "REJETEE" -> "Votre demande "
+            + demandeVerrouillee.get("reference") + " a été rejetée.";
+
+    case "PRECISION_DEMANDEE" -> "Des précisions sont demandées pour votre demande "
+            + demandeVerrouillee.get("reference") + ".";
+
+    default -> "Le statut de votre demande a été modifié.";
+};
+
+        notification.put("type",
+                newStatus.equals("REJETEE") || newStatus.equals("BROUILLON")
+                        ? "error" : "success");
+
+        notification.put("message", message);
+        notification.put("demandeId", demandeId);
+        notification.put("reference", demandeVerrouillee.get("reference"));
+        notification.put("ancienStatut", oldStatus);
+        notification.put("nouveauStatut", newStatus);
+
+        notificationService.notifierApresCommit(
+                (String) demandeVerrouillee.get("matricule"),
+                notification
+        );
+        // Événement métier envoyé au demandeur après la décision.
+Map<String, Object> evenement = new LinkedHashMap<>();
+
+evenement.put("type", "VALIDATION_TRAITEE");
+evenement.put("demandeId", demandeId);
+evenement.put("reference", demandeVerrouillee.get("reference"));
+evenement.put("ancienStatut", oldStatus);
+evenement.put("nouveauStatut", newStatus);
+evenement.put("decision", decision);
+evenement.put("message", message);
+
+workflowEventService.publierApresCommit(
+        (String) demandeVerrouillee.get("matricule"),
+        evenement
+);
             return detailDemande(demandeId);
     }
 
@@ -680,6 +1007,28 @@ public void reactiverCategorie(Integer id) {
                                 ELSE 'REFUSEE'::public.statut_offre END
                 WHERE demande_id=? AND statut='RECUE'
                 """, offreId, demandeId);
+
+                Map<String, Object> demandeInfo = jdbc.queryForMap("""
+                SELECT d.reference AS reference,
+                    u.matricule AS matricule
+                FROM public.demande_achat d
+                JOIN public.utilisateurs u ON u.id = d.demandeur_id
+                WHERE d.id = ?
+                """, demandeId);
+
+            Map<String, Object> notification = new LinkedHashMap<>();
+            notification.put("type", "success");
+            notification.put("message",
+                    "Une offre a été retenue pour votre demande "
+                            + demandeInfo.get("reference") + ".");
+            notification.put("reference", demandeInfo.get("reference"));
+            notification.put("nouveauStatut", "OFFRE_RETENUE");
+
+            notificationService.notifierApresCommit(
+                    (String) demandeInfo.get("matricule"),
+                    notification
+            );
+
         return jdbc.queryForMap("""
                 SELECT id AS id, demande_id AS demande_id, montant_total AS montant_total,
                        fournisseur_id AS fournisseur_id, statut AS statut
@@ -767,11 +1116,14 @@ public Map<String, Object> creerCommande(
         String email) {
 
     Map<String, Object> demande = jdbc.queryForMap("""
-            SELECT statut AS statut, reference AS reference
-            FROM public.demande_achat
-            WHERE id = ?
-            FOR UPDATE
-            """, demandeId);
+        SELECT d.statut AS statut,
+               d.reference AS reference,
+               u.matricule AS matricule
+        FROM public.demande_achat d
+        JOIN public.utilisateurs u ON u.id = d.demandeur_id
+        WHERE d.id = ?
+        FOR UPDATE OF d
+        """, demandeId);
 
     // Vérifier d'abord si une commande existe déjà.
     List<Map<String, Object>> commandesExistantes = jdbc.queryForList("""
@@ -884,6 +1236,20 @@ historique(
         "Commande " + number + " générée"
 );
 
+Map<String, Object> notification = new LinkedHashMap<>();
+notification.put("type", "success");
+notification.put("message",
+        "Le bon de commande " + number
+                + " a été créé pour votre demande "
+                + demande.get("reference") + ".");
+notification.put("reference", demande.get("reference"));
+notification.put("nouveauStatut", "COMMANDEE");
+
+notificationService.notifierApresCommit(
+        (String) demande.get("matricule"),
+        notification
+);
+
 return jdbc.queryForMap("""
         SELECT id AS id,
             numero AS numero,
@@ -952,7 +1318,17 @@ public List<Map<String, Object>> lignesCommande(
 
     @Transactional
     public Map<String, Object> receptionner(long commandeId, String email, AchatRequests.Reception reception) {
-        Map<String, Object> order = jdbc.queryForMap("SELECT statut AS statut FROM public.bon_commande WHERE id=? FOR UPDATE", commandeId);
+        Map<String, Object> order = jdbc.queryForMap("""
+        SELECT bc.statut AS statut,
+               bc.numero AS numero,
+               d.reference AS reference,
+               u.matricule AS matricule
+        FROM public.bon_commande bc
+        JOIN public.demande_achat d ON d.id = bc.demande_id
+        JOIN public.utilisateurs u ON u.id = d.demandeur_id
+        WHERE bc.id = ?
+        FOR UPDATE OF bc
+        """, commandeId);
         if (List.of("RECU", "ANNULE").contains(order.get("statut").toString())) throw new IllegalArgumentException("Cette commande ne peut plus recevoir de livraison.");
         
         Map<Integer, BigDecimal> quantities = new LinkedHashMap<>();
@@ -1052,6 +1428,36 @@ public List<Map<String, Object>> lignesCommande(
             jdbc.update("UPDATE public.demande_achat SET statut='RECEPTIONNEE' WHERE id=?", requestId);
             historique(requestId, "COMMANDEE", "RECEPTIONNEE", userIdVal, "Réception complète enregistrée");
         }
+        Map<String, Object> notification = new LinkedHashMap<>();
+
+                notification.put("type", "success");
+
+                if ("RECU".equals(status)) {
+                    notification.put(
+                            "message",
+                            "La réception de votre commande "
+                                    + order.get("numero")
+                                    + " pour la demande "
+                                    + order.get("reference")
+                                    + " est complète."
+                    );
+                } else {
+                    notification.put(
+                            "message",
+                            "Une réception partielle a été enregistrée pour votre commande "
+                                    + order.get("numero")
+                                    + " concernant la demande "
+                                    + order.get("reference") + "."
+                    );
+                }
+
+        notification.put("reference", order.get("reference"));
+        notification.put("nouveauStatut", status);
+
+        notificationService.notifierApresCommit(
+                (String) order.get("matricule"),
+                notification
+        );
         return jdbc.queryForMap("SELECT id AS id, bon_commande_id AS commande_id, date_reception AS date_reception, observation AS observation FROM public.reception WHERE id=?", receptionId);
     }
 
@@ -1614,15 +2020,13 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
                 line.quantite(),
                 line.prixUnitaireEstime()
             );
-        } catch (org.springframework.dao.DataAccessException e) {
+                } catch (org.springframework.dao.DataAccessException e) {
             throw new IllegalStateException(
                 "Impossible d'enregistrer une ligne de demande. Vérifiez les champs et la catégorie sélectionnée.", e
             );
         }
     }
-}
-    /*ddd */
-
+    }
    
 private void verifierCentrePourUtilisateur(int userId, int centreId) {
     List<Integer> servicesUtilisateur = jdbc.queryForList(

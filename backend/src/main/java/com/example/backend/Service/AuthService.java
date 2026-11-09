@@ -20,15 +20,18 @@ public class AuthService {
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
+    private final UtilisateurAuthStateService authStateService;
 
     public AuthService(AuthenticationManager authenticationManager,
                        UtilisateurRepository utilisateurRepository,
                        RoleRepository roleRepository,
-                       JwtUtil jwtUtil) {
+                       JwtUtil jwtUtil,
+                       UtilisateurAuthStateService authStateService) {
         this.authenticationManager = authenticationManager;
         this.utilisateurRepository = utilisateurRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
+        this.authStateService = authStateService;
     }
 
     public LoginResponse connecter(String identifiant, String password) {
@@ -44,7 +47,8 @@ public class AuthService {
                         "Utilisateur non trouvé avec ce matricule ou cette adresse email."));
 
         // Génération du token en passant le matricule (String) à JwtUtil
-        String token = jwtUtil.generateToken(utilisateur.getMatricule());
+        int authVersion = authStateService.ensureAndGetVersion(utilisateur.getId());
+        String token = jwtUtil.generateToken(utilisateur.getMatricule(), authVersion);
 
         return new LoginResponse(
                 "Connexion réussie",

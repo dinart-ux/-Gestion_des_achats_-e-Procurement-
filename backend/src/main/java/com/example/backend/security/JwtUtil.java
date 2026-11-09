@@ -3,7 +3,6 @@ package com.example.backend.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,6 +13,8 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
+
+    public static final String AUTH_VERSION_CLAIM = "authVersion";
 
     // La clé doit faire au minimum 32 octets pour HS256
     @Value("${jwt.secret:}")
@@ -38,6 +39,10 @@ public class JwtUtil {
     }
 
     public String generateToken(String username) {
+        return generateToken(username, 0);
+    }
+
+    public String generateToken(String username, int authVersion) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + expirationMs);
 
@@ -45,28 +50,49 @@ public class JwtUtil {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(exp)
+                .claim(AUTH_VERSION_CLAIM, authVersion)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    /**
+     * Les JWT historiques ne possèdent pas ce claim et sont donc considérés
+     * comme appartenant à la version 0.
+     */
+    public int extractAuthVersion(String token) {
+        Object value = parseClaims(token).get(AUTH_VERSION_CLAIM);
+        if (value == null) {
+            return 0;
+        }
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Claim authVersion invalide.", exception);
+        }
+    }
+
+    private Claims parseClaims(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.getSubject();
+        return claims;
     }
 
     public boolean isTokenValid(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
+            Claims claims = parseClaims(token);
             return claims.getExpiration().after(new Date());
 
         } catch (Exception e) {

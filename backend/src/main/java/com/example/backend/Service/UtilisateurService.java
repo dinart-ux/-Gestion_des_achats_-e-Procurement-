@@ -22,16 +22,19 @@ public class UtilisateurService {
         private final RoleRepository roles;
         private final ManagerRepository managers;
         private final PasswordEncoder passwordEncoder;
+        private final UtilisateurAuthStateService authStateService;
 
         public UtilisateurService(
                 UtilisateurRepository utilisateurs,
                 RoleRepository roles,
                 ManagerRepository managers,
-                PasswordEncoder passwordEncoder) {
+                PasswordEncoder passwordEncoder,
+                UtilisateurAuthStateService authStateService) {
         this.utilisateurs = utilisateurs;
         this.roles = roles;
         this.managers = managers;
         this.passwordEncoder = passwordEncoder;
+        this.authStateService = authStateService;
         }
 
         @Transactional(readOnly = true)
@@ -92,7 +95,9 @@ public class UtilisateurService {
         utilisateur.setService(serviceId);
         utilisateur.setManagerId(managerId);
 
-        return reponse(utilisateurs.save(utilisateur));
+        Utilisateur saved = utilisateurs.save(utilisateur);
+        authStateService.ensureState(saved.getId());
+        return reponse(saved);
     }
 
     @Transactional

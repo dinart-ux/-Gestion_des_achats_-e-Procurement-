@@ -1,5 +1,6 @@
 package com.example.backend.security;
 
+import com.example.backend.Service.UtilisateurAuthStateService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,10 +21,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final UtilisateurAuthStateService authStateService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(
+            JwtUtil jwtUtil,
+            CustomUserDetailsService userDetailsService,
+            UtilisateurAuthStateService authStateService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.authStateService = authStateService;
     }
 
     @Override
@@ -37,12 +43,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 if (jwtUtil.isTokenValid(token)) {
                     String username = jwtUtil.extractUsername(token);
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    if (userDetails.isEnabled()) {
+                    int authVersion = jwtUtil.extractAuthVersion(token);
+                    if (authStateService.isCurrentVersion(username, authVersion)) {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                        if (userDetails.isEnabled()) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+                        }
                     }
                 }
             } catch (RuntimeException ignored) {
