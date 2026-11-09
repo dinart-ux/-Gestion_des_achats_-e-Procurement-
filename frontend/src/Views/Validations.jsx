@@ -59,6 +59,36 @@ export default function Validations() {
       .then(({ data }) => setServices(Array.isArray(data) ? data : []))
       .catch((e) => setError(errorMessage(e, 'Impossible de charger les services.')));
   }, [load]);
+  // Actualisation automatique des validations via WebSocket.
+useEffect(() => {
+  const handleWorkflowUpdate = (event) => {
+    const evenement = event.detail;
+
+    if (
+      evenement?.type === 'DEMANDE_SOUMISE' ||
+      evenement?.type === 'VALIDATION_TRAITEE'
+    ) {
+      console.log(
+        'Nouvelle demande à valider :',
+        evenement.reference
+      );
+
+      load(view, appliedFilters);
+    }
+  };
+
+  window.addEventListener(
+    'workflow-update',
+    handleWorkflowUpdate
+  );
+
+  return () => {
+    window.removeEventListener(
+      'workflow-update',
+      handleWorkflowUpdate
+    );
+  };
+}, [load, view, appliedFilters]);
 
   // Garder la page derrière la modale immobile et permettre sa fermeture avec Échap.
   useEffect(() => {

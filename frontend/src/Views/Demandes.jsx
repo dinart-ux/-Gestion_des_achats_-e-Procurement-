@@ -91,6 +91,37 @@ export default function Demandes() {
     load();
   }, [load]);
 
+  // Actualisation automatique lors d'un événement WebSocket.
+useEffect(() => {
+  const handleWorkflowUpdate = (event) => {
+    const evenement = event.detail;
+
+    if (
+      evenement?.type === 'DEMANDE_SOUMISE' ||
+      evenement?.type === 'VALIDATION_TRAITEE'
+    ) {
+      console.log(
+        'Nouvelle demande soumise :',
+        evenement.reference
+      );
+
+      load();
+    }
+  };
+
+  window.addEventListener(
+    'workflow-update',
+    handleWorkflowUpdate
+  );
+
+  return () => {
+    window.removeEventListener(
+      'workflow-update',
+      handleWorkflowUpdate
+    );
+  };
+}, [load]);
+
   // Fermeture de la modale de détails avec Échap
   useEffect(() => {
     if (!selected) return undefined;

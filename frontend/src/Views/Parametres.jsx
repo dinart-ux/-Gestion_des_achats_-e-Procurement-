@@ -4,7 +4,7 @@ import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
 import { useToastMessages } from '../components/notifications/ToastContext';
-import './Menu.css';
+import './Parametres.css';
 
 function getUser() {
   try {
@@ -28,17 +28,24 @@ function isAdministrator(user) {
     user.roles,
   ];
 
-  const values = candidates.flat(Infinity).filter(
-    (value) => value !== null && value !== undefined
-  );
+  return candidates
+    .flat(Infinity)
+    .filter((value) => value !== null && value !== undefined)
+    .some((value) => {
+      const normalized = String(value)
+        .trim()
+        .toUpperCase()
+        .replace(/^ROLE_/, '');
 
-  return values.some((value) => {
-    const normalized = String(value)
-      .trim()
-      .toUpperCase()
-      .replace(/^ROLE_/, '');
+      return normalized === 'ADMIN' || normalized === '4';
+    });
+}
 
-    return normalized === 'ADMIN' || normalized === '4';
+function formatAmount(value) {
+  if (value === null || value === undefined || value === '') return '—';
+
+  return Number(value).toLocaleString('fr-FR', {
+    maximumFractionDigits: 2,
   });
 }
 
@@ -46,6 +53,7 @@ export default function Parametres() {
   const user = getUser();
   const isAdmin = isAdministrator(user);
 
+  const [showServices, setShowServices] = useState(false);
   const [rows, setRows] = useState([]);
   const [centres, setCentres] = useState([]);
   const [budgetCentres, setBudgetCentres] = useState([]);
@@ -80,7 +88,6 @@ export default function Parametres() {
     serviceId: '',
   });
 
-  // Charger les budgets de l'année sélectionnée.
   const load = useCallback(async () => {
     try {
       const { data } = await workflowApi.get('/budgets', {
@@ -97,7 +104,6 @@ export default function Parametres() {
     }
   }, [year, setError]);
 
-  // Charger les centres de coût actifs pour la gestion des budgets.
   const loadBudgetCentres = useCallback(async () => {
     if (!isAdmin) return;
 
@@ -113,7 +119,6 @@ export default function Parametres() {
     }
   }, [isAdmin, setError]);
 
-  // Charger les centres de coût.
   const loadCentres = useCallback(async () => {
     try {
       const { data } = await workflowApi.get('/centres-cout');
@@ -127,7 +132,6 @@ export default function Parametres() {
     }
   }, [setError]);
 
-  // Charger les services.
   const loadServices = useCallback(async () => {
     try {
       const { data } = await workflowApi.get('/services');
@@ -177,7 +181,7 @@ export default function Parametres() {
     }
   }, [isAdmin, loadServices]);
 
-  // Créer un centre de coût.
+  // Création d'un centre de coût.
   const createCentre = async (e) => {
     e.preventDefault();
 
@@ -287,7 +291,6 @@ export default function Parametres() {
     }
   };
 
-  // Préparer la modification d'un service.
   const editService = (service) => {
     setEditingServiceId(service.id);
     setServiceForm({ nom: service.nom || '' });
@@ -295,7 +298,6 @@ export default function Parametres() {
     setSuccess('');
   };
 
-  // Annuler la modification.
   const cancelEditService = () => {
     setEditingServiceId(null);
     setServiceForm({ nom: '' });
@@ -303,7 +305,6 @@ export default function Parametres() {
     setSuccess('');
   };
 
-  // Supprimer un service.
   const deleteService = async (service) => {
     if (savingServiceRef.current) return;
 
@@ -342,7 +343,6 @@ export default function Parametres() {
     }
   };
 
-  // Modifier un champ du budget.
   const update = (id, key, value) => {
     setRows((current) =>
       current.map((row) =>
@@ -353,7 +353,6 @@ export default function Parametres() {
     );
   };
 
-  // Enregistrer un budget existant.
   const save = async (row) => {
     setError('');
     setSuccess('');
@@ -419,7 +418,6 @@ export default function Parametres() {
     setSuccess('');
   };
 
-  // Vérifier si un budget existe déjà pour le centre et l'année choisis.
   const updateBudgetSelection = async (key, value) => {
     const next = { ...budgetForm, [key]: value };
 
@@ -473,7 +471,6 @@ export default function Parametres() {
     }
   };
 
-  // Modifier un budget existant dans le formulaire.
   const editBudget = (row) => {
     setBudgetForm({
       centreCoutId: String(row.centre_cout_id),
@@ -488,7 +485,6 @@ export default function Parametres() {
     setSuccess('');
   };
 
-  // Créer ou modifier un budget.
   const saveBudget = async (event) => {
     event.preventDefault();
 
@@ -564,21 +560,38 @@ export default function Parametres() {
   };
 
   return (
-    <div className="page-content">
-      {/* Gestion des services : administrateur uniquement */}
-      {isAdmin && (
-        <section id="services" className="content-card">
-          <h2>Gestion des services</h2>
-
+    <div className="parametres-page">
+      <div className="parametres-heading">
+        <div>
+          <span className="parametres-eyebrow">CONFIGURATION</span>
+          <h1>Paramètres</h1>
           <p>
-            Crée, consulte, modifie ou supprime les services de
-            l'organisation.
+            Gérez les services, les centres de coût et les budgets de
+            votre organisation.
           </p>
+        </div>
+        <div className="parametres-heading-icon">
+          <span>⚙</span>
+        </div>
+      </div>
 
-          <form onSubmit={saveService}>
-            <label>
-              Nom du service
+      {/* Gestion des services */}
+      {isAdmin && (
+        <section id="services" className="parametres-card">
+          <div className="parametres-section-heading">
+            <div className="parametres-section-icon purple">▦</div>
+            <div>
+              <h2>Gestion des services</h2>
+              <p>
+                Créez, consultez, modifiez ou supprimez les services de
+                l'organisation.
+              </p>
+            </div>
+          </div>
 
+          <form className="parametres-form service-form" onSubmit={saveService}>
+            <label className="parametres-field">
+              <span>Nom du service</span>
               <input
                 type="text"
                 value={serviceForm.nom}
@@ -592,7 +605,7 @@ export default function Parametres() {
               />
             </label>
 
-            <div className="service-form-actions">
+            <div className="parametres-form-actions">
               <IconActionButton
                 icon={editingServiceId !== null ? 'save' : 'create'}
                 type="submit"
@@ -618,66 +631,106 @@ export default function Parametres() {
             </div>
           </form>
 
-          <h3>Liste des services</h3>
+          {/* Bouton afficher / masquer */}
+          <div className="parametres-services-toggle">
+            <div>
+              <h3>Liste des services</h3>
+              <span className="parametres-count">
+                {services.length} service(s)
+              </span>
+            </div>
 
-          {services.length === 0 ? (
-            <p>Aucun service trouvé.</p>
-          ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Nom du service</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+            <button
+              type="button"
+              className="parametres-toggle-button"
+              aria-expanded={showServices}
+              aria-controls="parametres-services-list"
+              onClick={() => setShowServices((current) => !current)}
+            >
+              <span>
+                {showServices ? 'Masquer les services' : 'Afficher les services'}
+              </span>
+              <span className="parametres-toggle-icon" aria-hidden="true">
+                {showServices ? '▲' : '▼'}
+              </span>
+            </button>
+          </div>
 
-                <tbody>
-                  {services.map((service) => (
-                    <tr key={service.id}>
-                      <td>{service.id}</td>
-                      <td>{service.nom}</td>
-                      <td>
-                        <div className="service-row-actions">
-                          <ActionIconButton
-                            icon="edit"
-                            label={`Modifier le service ${service.nom}`}
-                            onClick={() => editService(service)}
-                            disabled={savingService}
-                          />
-
-                          <ActionIconButton
-                            icon="delete"
-                            label={`Supprimer le service ${service.nom}`}
-                            className="service-delete-button"
-                            onClick={() => deleteService(service)}
-                            disabled={savingService}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Liste cachée par défaut */}
+          {showServices && (
+            <div id="parametres-services-list">
+              {services.length === 0 ? (
+                <div className="parametres-empty">
+                  <span>▦</span>
+                  <strong>Aucun service trouvé</strong>
+                  <p>Les services créés apparaîtront ici.</p>
+                </div>
+              ) : (
+                <div className="parametres-table-wrap">
+                  <table className="parametres-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Nom du service</th>
+                        <th className="actions-column">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {services.map((service) => (
+                        <tr key={service.id}>
+                          <td>
+                            <span className="parametres-id">
+                              #{service.id}
+                            </span>
+                          </td>
+                          <td className="parametres-primary-cell">
+                            {service.nom}
+                          </td>
+                          <td>
+                            <div className="parametres-row-actions">
+                              <ActionIconButton
+                                icon="edit"
+                                label={`Modifier le service ${service.nom}`}
+                                onClick={() => editService(service)}
+                                disabled={savingService}
+                              />
+                              <ActionIconButton
+                                icon="delete"
+                                label={`Supprimer le service ${service.nom}`}
+                                className="service-delete-button"
+                                onClick={() => deleteService(service)}
+                                disabled={savingService}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </section>
       )}
 
-      {/* Création réservée à l'administrateur */}
+      {/* Création d'un centre de coût */}
       {isAdmin && (
-        <section className="content-card">
-          <h2>Créer un centre de coût</h2>
+        <section className="parametres-card">
+          <div className="parametres-section-heading">
+            <div className="parametres-section-icon blue">⌖</div>
+            <div>
+              <h2>Créer un centre de coût</h2>
+              <p>
+                Enregistrez un nouveau centre de coût et associez-le à un
+                service.
+              </p>
+            </div>
+          </div>
 
-          <p>
-            Enregistre un nouveau centre de coût et associe-le à un service.
-          </p>
-
-          <form onSubmit={createCentre}>
-            <label>
-              Code du centre de coût
-
+          <form className="parametres-form centre-form" onSubmit={createCentre}>
+            <label className="parametres-field">
+              <span>Code du centre de coût</span>
               <input
                 type="text"
                 value={form.code}
@@ -694,9 +747,8 @@ export default function Parametres() {
               />
             </label>
 
-            <label>
-              Libellé
-
+            <label className="parametres-field">
+              <span>Libellé</span>
               <input
                 type="text"
                 value={form.libelle}
@@ -713,9 +765,8 @@ export default function Parametres() {
               />
             </label>
 
-            <label>
-              Service associé
-
+            <label className="parametres-field">
+              <span>Service associé</span>
               <select
                 value={form.serviceId}
                 onChange={(e) =>
@@ -727,8 +778,7 @@ export default function Parametres() {
                 required
                 disabled={creating || services.length === 0}
               >
-                <option value="">Sélectionner un service…</option>
-
+                <option value="">Sélectionner un service...</option>
                 {services.map((service) => (
                   <option key={service.id} value={service.id}>
                     {service.nom || service.libelle || service.code}
@@ -737,41 +787,61 @@ export default function Parametres() {
               </select>
             </label>
 
-            <IconActionButton
-              icon="create"
-              type="submit"
-              disabled={creating || services.length === 0}
-            >
-              {creating
-                ? 'Création en cours...'
-                : 'Créer le centre de coût'}
-            </IconActionButton>
+            <div className="parametres-form-actions centre-submit">
+              <IconActionButton
+                icon="create"
+                type="submit"
+                disabled={creating || services.length === 0}
+              >
+                {creating
+                  ? 'Création en cours...'
+                  : 'Créer le centre de coût'}
+              </IconActionButton>
+            </div>
           </form>
         </section>
       )}
 
       {/* Liste des centres de coût */}
-      <section id="centres-de-couts" className="content-card">
-        <h2>Centres de coût existants</h2>
+      <section id="centres-de-couts" className="parametres-card">
+        <div className="parametres-section-heading">
+          <div className="parametres-section-icon cyan">⌖</div>
+          <div>
+            <h2>Centres de coût existants</h2>
+            <p>Consultez les centres de coût enregistrés.</p>
+          </div>
+          <span className="parametres-count heading-count">
+            {centres.length} centre(s)
+          </span>
+        </div>
 
         {centres.length === 0 ? (
-          <p>Aucun centre de coût trouvé.</p>
+          <div className="parametres-empty">
+            <span>⌖</span>
+            <strong>Aucun centre de coût trouvé</strong>
+            <p>Les centres de coût disponibles apparaîtront ici.</p>
+          </div>
         ) : (
-          <div className="table-wrap">
-            <table>
+          <div className="parametres-table-wrap">
+            <table className="parametres-table">
               <thead>
                 <tr>
                   <th>Code</th>
                   <th>Libellé</th>
-                  <th>Service</th>
+                  <th>Service associé</th>
                 </tr>
               </thead>
-
               <tbody>
                 {centres.map((centre) => (
                   <tr key={centre.id}>
-                    <td>{centre.code}</td>
-                    <td>{centre.libelle}</td>
+                    <td>
+                      <span className="parametres-code">
+                        {centre.code}
+                      </span>
+                    </td>
+                    <td className="parametres-primary-cell">
+                      {centre.libelle}
+                    </td>
                     <td>
                       {centre.service || centre.service_id || '—'}
                     </td>
@@ -783,25 +853,293 @@ export default function Parametres() {
         )}
       </section>
 
-      {/* Gestion des budgets */}
+      {/* Gestion des budgets annuels */}
       {isAdmin && (
-        <section className="content-card">
-          <h2>Gestion des budgets annuels</h2>
+        <section className="parametres-card">
+          <div className="parametres-section-heading">
+            <div className="parametres-section-icon orange">▤</div>
+            <div>
+              <h2>Gestion des budgets annuels</h2>
+              <p>
+                Définissez le montant alloué et le seuil d'alerte de chaque
+                centre de coût.
+              </p>
+            </div>
+          </div>
 
-          <IconActionButton
-            icon="create"
-            type="button"
-            className="action-button"
-            onClick={openNewBudget}
+          <div className="parametres-budget-create">
+            <div>
+              <strong>Configuration des budgets</strong>
+              <p>
+                Vous pouvez créer un budget ou modifier un budget existant.
+              </p>
+            </div>
+            <IconActionButton
+              icon="create"
+              type="button"
+              className="action-button"
+              onClick={openNewBudget}
+            >
+              Créer un budget
+            </IconActionButton>
+          </div>
+        </section>
+      )}
+
+      {/* Budgets par centre de coût */}
+      <section id="budgets" className="parametres-card">
+        <div className="parametres-section-heading">
+          <div className="parametres-section-icon green">▥</div>
+          <div>
+            <h2>Budgets par centre de coût</h2>
+            <p>
+              Suivez les montants alloués, les engagements et les soldes
+              disponibles.
+            </p>
+          </div>
+        </div>
+
+        <div className="parametres-budget-note">
+          <span>ⓘ</span>
+          <p>
+            Les engagements sont comptabilisés à la validation, à partir du
+            montant estimé, sur le budget de l’année de validation.
+          </p>
+        </div>
+
+        <div className="parametres-filters">
+          <label className="parametres-field">
+            <span>Année budgétaire</span>
+            <input
+              type="number"
+              min="2000"
+              max="2100"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            />
+          </label>
+
+          <label className="parametres-field">
+            <span>Centre de coût</span>
+            <select
+              value={centreFilter}
+              onChange={(e) => setCentreFilter(e.target.value)}
+            >
+              <option value="">Tous les centres</option>
+              {rows.map((row) => (
+                <option
+                  key={row.centre_cout_id}
+                  value={row.centre_cout_id}
+                >
+                  {row.code} — {row.libelle}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {displayedBudgetRows.length === 0 ? (
+          <div className="parametres-empty">
+            <span>▤</span>
+            <strong>Aucun budget disponible</strong>
+            <p>
+              Aucun budget n'est disponible pour l'année {year} avec ce
+              filtre.
+            </p>
+          </div>
+        ) : (
+          <div className="parametres-table-wrap">
+            <table className="parametres-table budget-table">
+              <thead>
+                <tr>
+                  <th>Centre de coût</th>
+                  <th>Montant alloué</th>
+                  <th>Seuil (%)</th>
+                  <th>Engagé</th>
+                  <th>Solde disponible</th>
+                  <th>Utilisation</th>
+                  <th>Alerte</th>
+                  {isAdmin && <th>Action</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {displayedBudgetRows.map((row) => {
+                  const utilisation = Number(row.consommation_pct || 0);
+                  const alerte = Boolean(row.alerte_seuil);
+
+                  return (
+                    <tr key={row.centre_cout_id}>
+                      <td className="parametres-primary-cell">
+                        <span>{row.code}</span>
+                        <small>{row.libelle}</small>
+                      </td>
+
+                      <td>
+                        {isAdmin ? (
+                          <input
+                            className="parametres-table-input"
+                            aria-label={`Budget alloué ${row.code}`}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={row.montant_alloue ?? ''}
+                            onChange={(e) =>
+                              update(
+                                row.centre_cout_id,
+                                'montant_alloue',
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          formatAmount(row.montant_alloue)
+                        )}
+                      </td>
+
+                      <td>
+                        {isAdmin ? (
+                          <input
+                            className="parametres-table-input"
+                            aria-label={`Seuil d’alerte ${row.code}`}
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={row.seuil_alerte_pct ?? 80}
+                            onChange={(e) =>
+                              update(
+                                row.centre_cout_id,
+                                'seuil_alerte_pct',
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          row.seuil_alerte_pct ?? '—'
+                        )}
+                      </td>
+
+                      <td>{formatAmount(row.montant_engage || 0)}</td>
+
+                      <td>
+                        {row.montant_alloue == null
+                          ? '—'
+                          : formatAmount(row.solde_disponible || 0)}
+                      </td>
+
+                      <td>
+                        {row.montant_alloue == null ? (
+                          '—'
+                        ) : (
+                          <div className="parametres-usage">
+                            <div className="parametres-usage-track">
+                              <span
+                                className={
+                                  alerte
+                                    ? 'parametres-usage-fill warning'
+                                    : 'parametres-usage-fill'
+                                }
+                                style={{
+                                  width: `${Math.min(
+                                    Math.max(utilisation, 0),
+                                    100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                            <strong>
+                              {utilisation.toLocaleString('fr-FR')} %
+                            </strong>
+                          </div>
+                        )}
+                      </td>
+
+                      <td>
+                        {row.montant_alloue == null ? (
+                          <span className="parametres-status neutral">
+                            Non défini
+                          </span>
+                        ) : alerte ? (
+                          <span className="parametres-status warning">
+                            Seuil atteint
+                          </span>
+                        ) : (
+                          <span className="parametres-status success">
+                            Sous le seuil
+                          </span>
+                        )}
+                      </td>
+
+                      {isAdmin && (
+                        <td>
+                          <div className="parametres-row-actions">
+                            <IconActionButton
+                              icon={row.budget_id ? 'save' : 'create'}
+                              type="button"
+                              className="quiet-button"
+                              onClick={() => save(row)}
+                            >
+                              {row.budget_id ? 'Enregistrer' : 'Créer'}
+                            </IconActionButton>
+                            {row.budget_id && (
+                              <ActionIconButton
+                                icon="edit"
+                                label={`Modifier le budget ${row.code}`}
+                                onClick={() => editBudget(row)}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Modale de création ou modification d'un budget */}
+      {budgetFormOpen && (
+        <div
+          className="parametres-modal-overlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !savingBudget) {
+              setBudgetFormOpen(false);
+            }
+          }}
+        >
+          <section
+            className="parametres-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="budget-modal-title"
           >
-            Créer un budget
-          </IconActionButton>
+            <div className="parametres-modal-header">
+              <div>
+                <span className="parametres-eyebrow">BUDGET ANNUEL</span>
+                <h2 id="budget-modal-title">
+                  Configurer un budget
+                </h2>
+                <p>
+                  Renseignez les informations du budget du centre de coût.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="parametres-modal-close"
+                aria-label="Fermer"
+                onClick={() => setBudgetFormOpen(false)}
+                disabled={savingBudget}
+              >
+                ×
+              </button>
+            </div>
 
-          {budgetFormOpen && (
-            <form className="filter-form" onSubmit={saveBudget}>
-              <label>
-                Centre de coût
-
+            <form className="parametres-modal-form" onSubmit={saveBudget}>
+              <label className="parametres-field">
+                <span>Centre de coût</span>
                 <select
                   required
                   value={budgetForm.centreCoutId}
@@ -810,7 +1148,6 @@ export default function Parametres() {
                   }
                 >
                   <option value="">Sélectionner un centre actif</option>
-
                   {budgetCentres.map((centre) => (
                     <option
                       key={centre.centre_cout_id}
@@ -822,9 +1159,8 @@ export default function Parametres() {
                 </select>
               </label>
 
-              <label>
-                Année budgétaire
-
+              <label className="parametres-field">
+                <span>Année budgétaire</span>
                 <input
                   required
                   type="number"
@@ -837,9 +1173,8 @@ export default function Parametres() {
                 />
               </label>
 
-              <label>
-                Montant annuel alloué
-
+              <label className="parametres-field">
+                <span>Montant annuel alloué</span>
                 <input
                   required
                   type="number"
@@ -852,12 +1187,12 @@ export default function Parametres() {
                       montantAlloue: e.target.value,
                     }))
                   }
+                  placeholder="Ex. 5000000"
                 />
               </label>
 
-              <label>
-                Seuil d’alerte (%)
-
+              <label className="parametres-field">
+                <span>Seuil d'alerte (%)</span>
                 <input
                   required
                   type="number"
@@ -872,20 +1207,12 @@ export default function Parametres() {
                     }))
                   }
                 />
+                <small>
+                  Une alerte sera affichée lorsque ce pourcentage sera atteint.
+                </small>
               </label>
 
-              <div className="form-actions">
-                <IconActionButton
-                  icon="save"
-                  type="submit"
-                  className="action-button"
-                  disabled={savingBudget}
-                >
-                  {savingBudget
-                    ? 'Enregistrement…'
-                    : 'Enregistrer le budget'}
-                </IconActionButton>
-
+              <div className="parametres-modal-actions">
                 <IconActionButton
                   icon="cancel"
                   type="button"
@@ -895,164 +1222,22 @@ export default function Parametres() {
                 >
                   Annuler
                 </IconActionButton>
+
+                <IconActionButton
+                  icon="save"
+                  type="submit"
+                  className="action-button"
+                  disabled={savingBudget}
+                >
+                  {savingBudget
+                    ? 'Enregistrement...'
+                    : 'Enregistrer le budget'}
+                </IconActionButton>
               </div>
             </form>
-          )}
-        </section>
+          </section>
+        </div>
       )}
-
-      {/* Budgets par centre de coût */}
-      <section id="budgets" className="content-card">
-        <h2>Budgets par centre de coût</h2>
-
-        <p>
-          Les engagements sont comptabilisés à la validation, à partir du
-          montant estimé, sur le budget de l’année de validation.
-        </p>
-
-        <label>
-          Année
-
-          <input
-            type="number"
-            min="2000"
-            max="2100"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-          />
-        </label>
-
-        <label>
-          Centre de coût
-
-          <select
-            value={centreFilter}
-            onChange={(e) => setCentreFilter(e.target.value)}
-          >
-            <option value="">Tous les centres</option>
-
-            {rows.map((row) => (
-              <option
-                key={row.centre_cout_id}
-                value={row.centre_cout_id}
-              >
-                {row.code} — {row.libelle}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {displayedBudgetRows.length === 0 ? (
-          <p>Aucun budget disponible pour cette année.</p>
-        ) : (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Centre de coût</th>
-                  <th>Montant alloué</th>
-                  <th>Seuil d’alerte (%)</th>
-                  <th>Engagé</th>
-                  <th>Solde disponible</th>
-                  <th>Utilisation</th>
-                  <th>Alerte</th>
-                  {isAdmin && <th>Action</th>}
-                </tr>
-              </thead>
-
-              <tbody>
-                {displayedBudgetRows.map((row) => (
-                  <tr key={row.centre_cout_id}>
-                    <td>
-                      {row.code} — {row.libelle}
-                    </td>
-
-                    <td>
-                      {isAdmin ? (
-                        <input
-                          aria-label={`Budget alloué ${row.code}`}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={row.montant_alloue ?? ''}
-                          onChange={(e) =>
-                            update(
-                              row.centre_cout_id,
-                              'montant_alloue',
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        row.montant_alloue ?? 'Non défini'
-                      )}
-                    </td>
-
-                    <td>
-                      {isAdmin ? (
-                        <input
-                          aria-label={`Seuil d’alerte ${row.code}`}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.01"
-                          value={row.seuil_alerte_pct ?? 80}
-                          onChange={(e) =>
-                            update(
-                              row.centre_cout_id,
-                              'seuil_alerte_pct',
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        row.seuil_alerte_pct ?? '—'
-                      )}
-                    </td>
-
-                    <td>
-                      {Number(row.montant_engage || 0).toLocaleString('fr-FR')}
-                    </td>
-
-                    <td>
-                      {row.montant_alloue == null
-                        ? '—'
-                        : Number(row.solde_disponible || 0).toLocaleString('fr-FR')}
-                    </td>
-
-                    <td>
-                      {row.montant_alloue == null
-                        ? '—'
-                        : `${Number(row.consommation_pct || 0).toLocaleString('fr-FR')} %`}
-                    </td>
-
-                    <td>
-                      {row.montant_alloue == null
-                        ? 'Budget non défini'
-                        : row.alerte_seuil
-                          ? 'Seuil atteint'
-                          : 'Sous le seuil'}
-                    </td>
-
-                    {isAdmin && (
-                      <td>
-                        <IconActionButton
-                          icon={row.budget_id ? 'save' : 'create'}
-                          type="button"
-                          className="quiet-button"
-                          onClick={() => save(row)}
-                        >
-                          {row.budget_id ? 'Enregistrer' : 'Créer le budget'}
-                        </IconActionButton>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
     </div>
   );
 }

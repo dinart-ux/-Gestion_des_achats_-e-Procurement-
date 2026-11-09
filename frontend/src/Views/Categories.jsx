@@ -4,7 +4,7 @@ import workflowApi from '../service/workflowApi';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
 import { useToastMessages } from '../components/notifications/ToastContext';
-import './Menu.css';
+import './Categories.css';
 
 const EMPTY_FORM = {
     nom: '',
@@ -27,7 +27,8 @@ export default function Categories() {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const {error,success,setError,setSuccess,} = useToastMessages();
+
+    const { error, success, setError, setSuccess } = useToastMessages();
     const savingRef = useRef(false);
 
     const load = useCallback(async () => {
@@ -53,6 +54,23 @@ export default function Categories() {
         load();
     }, [load]);
 
+    // Fermeture avec la touche Échap
+    useEffect(() => {
+        if (!open) return;
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape' && !savingRef.current) {
+                handleCancel();
+            }
+        };
+
+        window.addEventListener('keydown', handleEscape);
+
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [open]);
+
     function handleChange(event) {
         const { name, value } = event.target;
 
@@ -63,11 +81,11 @@ export default function Categories() {
     }
 
     function handleNew() {
-        setForm(EMPTY_FORM);
+        setForm({ ...EMPTY_FORM });
         setEditingId(null);
-        setOpen(true);
         setError('');
         setSuccess('');
+        setOpen(true);
     }
 
     function handleEdit(categorie) {
@@ -77,13 +95,15 @@ export default function Categories() {
         });
 
         setEditingId(categorie.id);
-        setOpen(true);
         setError('');
         setSuccess('');
+        setOpen(true);
     }
 
     function handleCancel() {
-        setForm(EMPTY_FORM);
+        if (savingRef.current) return;
+
+        setForm({ ...EMPTY_FORM });
         setEditingId(null);
         setOpen(false);
         setError('');
@@ -91,6 +111,7 @@ export default function Categories() {
 
     async function handleSubmit(event) {
         event.preventDefault();
+
         if (savingRef.current) return;
 
         const nom = form.nom.trim();
@@ -100,8 +121,11 @@ export default function Categories() {
             setError('Le nom de la catégorie est obligatoire.');
             return;
         }
+
         if (nom.length > 100 || description.length > 255) {
-            setError('Le nom est limité à 100 caractères et la description à 255.');
+            setError(
+                'Le nom est limité à 100 caractères et la description à 255.'
+            );
             return;
         }
 
@@ -126,7 +150,7 @@ export default function Categories() {
                 setSuccess('Catégorie créée avec succès.');
             }
 
-            setForm(EMPTY_FORM);
+            setForm({ ...EMPTY_FORM });
             setEditingId(null);
             setOpen(false);
 
@@ -150,18 +174,18 @@ export default function Categories() {
 
     async function handleStatus(categorie, action) {
         if (savingRef.current) return;
+
         const reactivation = action === 'reactiver';
 
         const confirmation = reactivation
             ? `Réactiver la catégorie « ${categorie.nom} » ?`
             : `Désactiver la catégorie « ${categorie.nom} » ?`;
 
-        if (!window.confirm(confirmation)) {
-            return;
-        }
+        if (!window.confirm(confirmation)) return;
 
         setError('');
         setSuccess('');
+
         savingRef.current = true;
         setSaving(true);
 
@@ -186,127 +210,108 @@ export default function Categories() {
     }
 
     return (
-        <div className="page-content">
-            <section className="content-card">
+        <div className="categories-page">
 
-                <div className="section-heading">
+            {/* EN-TÊTE */}
+
+            <div className="categories-header">
+                <div>
+                    <span className="categories-eyebrow">
+                        PARAMÈTRES DES ACHATS
+                    </span>
+
+                    <h1>Catégories</h1>
+
+                    <p>
+                        Organisez les demandes d'achat en fonction
+                        de leurs catégories.
+                    </p>
+                </div>
+
+                <IconActionButton
+                    icon="create"
+                    type="button"
+                    className="categories-add-button"
+                    onClick={handleNew}
+                    disabled={saving}
+                >
+                    Ajouter une catégorie
+                </IconActionButton>
+            </div>
+
+            {/* NOTIFICATIONS */}
+
+            {error && (
+                <div className="categories-alert categories-alert-error" role="alert">
+                    <span>!</span>
+                    {error}
+                </div>
+            )}
+
+            {success && (
+                <div className="categories-alert categories-alert-success" role="status">
+                    <span>✓</span>
+                    {success}
+                </div>
+            )}
+
+            {/* LISTE DES CATÉGORIES */}
+
+            <section className="categories-card">
+
+                <div className="categories-list-heading">
                     <div>
-                        <h2>Gestion des catégories</h2>
+                        <h2>Liste des catégories</h2>
                         <p>
-                            Crée et gère les catégories des demandes d’achat.
+                            Consultez et gérez les catégories enregistrées.
                         </p>
                     </div>
 
-                    <IconActionButton
-                        icon="create"
-                        type="button"
-                        className="action-button"
-                        onClick={handleNew}
-                        disabled={saving}
-                    >
-                        Ajouter une catégorie
-                    </IconActionButton>
-                </div>
+                    <div className="categories-list-tools">
+                        <span className="categories-count">
+                            {categories.length} résultat(s)
+                        </span>
 
-                {error && (
-                    <p className="workflow-error" role="alert">
-                        {error}
-                    </p>
-                )}
-
-                {success && (
-                    <p
-                        className="categories-alert success"
-                        role="status"
-                    >
-                        {success}
-                    </p>
-                )}
-
-                {open && (
-                    <form
-                        className="workflow-form two-column-form"
-                        onSubmit={handleSubmit}
-                    >
-                        <label>
-                            Nom de la catégorie *
-                            <input
-                                type="text"
-                                name="nom"
-                                value={form.nom}
-                                onChange={handleChange}
-                                placeholder="Ex. : Fournitures de bureau"
-                                maxLength={100}
-                                disabled={saving}
-                                required
-                            />
-                        </label>
-
-                        <label>
-                            Description
-                            <textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handleChange}
-                                placeholder="Description de la catégorie"
-                                rows={3}
-                                maxLength={255}
-                                disabled={saving}
-                            />
-                        </label>
-
-                        <div className="form-actions">
-                            <IconActionButton
-                                icon="cancel"
-                                type="button"
-                                className="quiet-button"
-                                onClick={handleCancel}
-                                disabled={saving}
-                            >
-                                Annuler
-                            </IconActionButton>
-
-                            <IconActionButton
-                                icon="save"
-                                type="submit"
-                                className="action-button"
-                                disabled={saving}
-                            >
-                                {saving
-                                    ? 'Enregistrement...'
-                                    : editingId !== null
-                                        ? 'Enregistrer les modifications'
-                                        : 'Créer la catégorie'}
-                            </IconActionButton>
-                        </div>
-                    </form>
-                )}
-
-                <div className="section-heading categories-list-heading">
-                    <div>
-                        <h3>Liste des catégories</h3>
-                        <p>
-                            {categories.length} catégorie(s) enregistrée(s).
-                        </p>
+                        <ActionIconButton
+                            icon="refresh"
+                            label="Actualiser la liste des catégories"
+                            onClick={load}
+                            disabled={loading}
+                            loading={loading}
+                        />
                     </div>
-
-                    <ActionIconButton icon="refresh" label="Actualiser la liste des catégories" onClick={load} disabled={loading} loading={loading} />
                 </div>
 
-                {loading ? (
-                    <p className="loading-state" role="status">Chargement des catégories...</p>
+                {loading && categories.length === 0 ? (
+                    <div className="categories-empty">
+                        <div className="categories-loader"></div>
+                        <p>Chargement des catégories...</p>
+                    </div>
                 ) : categories.length === 0 ? (
-                    <p>Aucune catégorie enregistrée.</p>
+                    <div className="categories-empty">
+                        <div className="categories-empty-icon">▤</div>
+                        <h3>Aucune catégorie enregistrée</h3>
+                        <p>
+                            Commencez par ajouter votre première catégorie.
+                        </p>
+                        <button
+                            type="button"
+                            className="categories-empty-button"
+                            onClick={handleNew}
+                        >
+                            + Ajouter une catégorie
+                        </button>
+                    </div>
                 ) : (
-                    <div className="table-wrap">
-                        <table>
+                    <div className="categories-table-wrapper">
+                        <table className="categories-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Nom</th>
-                                    <th>Description</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
+                                    <th>CATÉGORIE</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>STATUT</th>
+                                    <th>ACTIONS</th>
                                 </tr>
                             </thead>
 
@@ -316,30 +321,69 @@ export default function Categories() {
 
                                     return (
                                         <tr key={categorie.id}>
-                                            <td>{categorie.id}</td>
-
                                             <td>
-                                                <strong>
-                                                    {categorie.nom}
-                                                </strong>
+                                                <span className="categories-id">
+                                                    #{categorie.id}
+                                                </span>
                                             </td>
 
                                             <td>
-                                                {categorie.description || '—'}
+                                                <div className="categories-name-cell">
+                                                    <div className="categories-name-icon">
+                                                        ▤
+                                                    </div>
+                                                    <strong>{categorie.nom}</strong>
+                                                </div>
                                             </td>
 
                                             <td>
-                                                {active ? 'Active' : 'Inactive'}
+                                                <span className="categories-description">
+                                                    {categorie.description || 'Aucune description'}
+                                                </span>
                                             </td>
 
                                             <td>
-                                                <div className="categorie-actions">
-                                                    <ActionIconButton icon="edit" label={`Modifier la catégorie ${categorie.nom}`} onClick={() => handleEdit(categorie)} disabled={saving} />
+                                                <span
+                                                    className={
+                                                        active
+                                                            ? 'categories-status active'
+                                                            : 'categories-status inactive'
+                                                    }
+                                                >
+                                                    <span className="categories-status-dot"></span>
+                                                    {active ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <div className="categories-actions">
+                                                    <ActionIconButton
+                                                        icon="edit"
+                                                        label={`Modifier la catégorie ${categorie.nom}`}
+                                                        onClick={() => handleEdit(categorie)}
+                                                        disabled={saving}
+                                                    />
 
                                                     {active ? (
-                                                        <ActionIconButton icon="disable" label={`Désactiver la catégorie ${categorie.nom}`} className="categorie-disable-button" onClick={() => handleStatus(categorie, 'desactiver')} disabled={saving} />
+                                                        <ActionIconButton
+                                                            icon="disable"
+                                                            label={`Désactiver la catégorie ${categorie.nom}`}
+                                                            className="categorie-disable-button"
+                                                            onClick={() =>
+                                                                handleStatus(categorie, 'desactiver')
+                                                            }
+                                                            disabled={saving}
+                                                        />
                                                     ) : (
-                                                        <ActionIconButton icon="enable" label={`Réactiver la catégorie ${categorie.nom}`} className="categorie-enable-button" onClick={() => handleStatus(categorie, 'reactiver')} disabled={saving} />
+                                                        <ActionIconButton
+                                                            icon="enable"
+                                                            label={`Réactiver la catégorie ${categorie.nom}`}
+                                                            className="categorie-enable-button"
+                                                            onClick={() =>
+                                                                handleStatus(categorie, 'reactiver')
+                                                            }
+                                                            disabled={saving}
+                                                        />
                                                     )}
                                                 </div>
                                             </td>
@@ -352,6 +396,155 @@ export default function Categories() {
                 )}
 
             </section>
+
+            {/* MODALE AJOUT / MODIFICATION */}
+
+            {open && (
+                <div
+                    className="categories-modal-overlay"
+                    onMouseDown={(event) => {
+                        if (
+                            event.target === event.currentTarget &&
+                            !savingRef.current
+                        ) {
+                            handleCancel();
+                        }
+                    }}
+                >
+                    <section
+                        className="categories-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="categories-modal-title"
+                    >
+
+                        <div className="categories-modal-header">
+                            <div className="categories-modal-heading">
+                                <div className="categories-modal-icon">
+                                    {editingId !== null ? '✎' : '+'}
+                                </div>
+
+                                <div>
+                                    <span className="categories-eyebrow">
+                                        GESTION DES CATÉGORIES
+                                    </span>
+
+                                    <h2 id="categories-modal-title">
+                                        {editingId !== null
+                                            ? 'Modifier la catégorie'
+                                            : 'Ajouter une catégorie'}
+                                    </h2>
+
+                                    <p>
+                                        {editingId !== null
+                                            ? 'Modifiez les informations de cette catégorie.'
+                                            : 'Renseignez les informations de la nouvelle catégorie.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="categories-modal-close"
+                                onClick={handleCancel}
+                                disabled={saving}
+                                aria-label="Fermer"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit}>
+
+                            <div className="categories-modal-body">
+
+                                <div className="categories-form-intro">
+                                    <span className="categories-required">*</span>
+                                    Champs obligatoires
+                                </div>
+
+                                <div className="categories-field">
+                                    <label htmlFor="categorie-nom">
+                                        Nom de la catégorie
+                                        <span className="categories-required">*</span>
+                                    </label>
+
+                                    <input
+                                        id="categorie-nom"
+                                        type="text"
+                                        name="nom"
+                                        value={form.nom}
+                                        onChange={handleChange}
+                                        placeholder="Ex. : Fournitures de bureau"
+                                        maxLength={100}
+                                        disabled={saving}
+                                        required
+                                        autoFocus
+                                    />
+
+                                    <small>
+                                        Donnez un nom clair et facile à identifier.
+                                    </small>
+
+                                    <div className="categories-character-count">
+                                        {form.nom.length}/100 caractères
+                                    </div>
+                                </div>
+
+                                <div className="categories-field">
+                                    <label htmlFor="categorie-description">
+                                        Description
+                                        <span className="categories-optional">
+                                            Facultatif
+                                        </span>
+                                    </label>
+
+                                    <textarea
+                                        id="categorie-description"
+                                        name="description"
+                                        value={form.description}
+                                        onChange={handleChange}
+                                        placeholder="Décrivez brièvement cette catégorie..."
+                                        rows={4}
+                                        maxLength={255}
+                                        disabled={saving}
+                                    />
+
+                                    <div className="categories-character-count">
+                                        {form.description.length}/255 caractères
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div className="categories-modal-footer">
+                                <button
+                                    type="button"
+                                    className="categories-cancel-button"
+                                    onClick={handleCancel}
+                                    disabled={saving}
+                                >
+                                    Annuler
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    className="categories-submit-button"
+                                    disabled={saving}
+                                >
+                                    {saving
+                                        ? 'Enregistrement...'
+                                        : editingId !== null
+                                            ? '✓ Enregistrer les modifications'
+                                            : '+ Créer la catégorie'}
+                                </button>
+                            </div>
+
+                        </form>
+                    </section>
+                </div>
+            )}
+
         </div>
     );
 }

@@ -10,7 +10,7 @@ import './App.css';
 
 import Login from './Views/Login';
 import Menu from './Views/Menu';
-
+import NotificationsSocket from './service/notificationsSocket';
 import { getStoredUser } from './service/roleUtils';
 import { ToastProvider } from './components/notifications/ToastContext';
 
@@ -22,6 +22,9 @@ function AppRoutes() {
     const isLogged = Boolean(token && user && user.role != null);
 
     return (
+    <>
+        {isLogged && <NotificationsSocket />}
+
         <Routes location={location}>
             <Route
                 path="/login"
@@ -51,7 +54,8 @@ function AppRoutes() {
                 }
             />
         </Routes>
-    );
+    </>
+);
 }
 
 export default function App() {
