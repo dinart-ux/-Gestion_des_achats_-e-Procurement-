@@ -1,6 +1,7 @@
 package com.example.backend.Service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -29,7 +30,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AchatWorkflowSoumissionTest {
     @Mock private JdbcTemplate jdbc;
-    @InjectMocks private AchatWorkflowService service;
+    @Mock private NotificationService notificationService;
+    @Mock private WorkflowEventService workflowEventService;
+    @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    @Mock private UtilisateurAuthStateService authStateService;
+    private AchatWorkflowService service;
+
+    @BeforeEach void setUpService() {
+        service = new AchatWorkflowService(jdbc, notificationService, workflowEventService,
+                passwordEncoder, authStateService, false);
+    }
 
     @Test
     void soumissionInsereLeManagerEnPremierMemeSiSonSeuilDepasseLeMontant() {
@@ -154,6 +164,34 @@ class AchatWorkflowSoumissionTest {
     }
 
     @Test
+    void demandeIncompleteEstRefuseeAvantLaCreationDesValidations() {
+        when(jdbc.queryForList(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(List.of(10));
+        when(jdbc.queryForMap(anyString(), any(Object[].class))).thenReturn(Map.of(
+                "statut", "BROUILLON", "demandeur", 10, "objet", "", "centre_cout_id", 3));
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(1);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> service.soumettre(5, "demandeur@example.test"));
+
+        assertTrue(exception.getMessage().contains("objet et le centre"));
+        verify(jdbc, never()).update(anyString(), any(Object[].class));
+    }
+
+    @Test
+    void ligneIncompleteEstRefuseeAvantLaCreationDesValidations() {
+        when(jdbc.queryForList(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(List.of(10));
+        when(jdbc.queryForMap(anyString(), any(Object[].class))).thenReturn(Map.of(
+                "statut", "BROUILLON", "demandeur", 10, "objet", "Achat de test", "centre_cout_id", 3));
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(1);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> service.soumettre(5, "demandeur@example.test"));
+
+        assertTrue(exception.getMessage().contains("Complétez chaque ligne"));
+        verify(jdbc, never()).update(anyString(), any(Object[].class));
+    }
+
+    @Test
     void managerInvalideEstRefuseAvantLaCreationDesValidations() {
         preparerSoumissionValide();
         when(jdbc.queryForObject(org.mockito.ArgumentMatchers.contains("SELECT EXISTS"), eq(Boolean.class), any(Object[].class)))
@@ -181,6 +219,8 @@ class AchatWorkflowSoumissionTest {
         Mockito.lenient().when(jdbc.queryForList(anyString(), any(Object[].class))).thenReturn(List.of());
         when(jdbc.queryForMap(anyString(), any(Object[].class))).thenAnswer(invocation -> {
             String sql = invocation.getArgument(0);
+            if (sql.contains("SELECT d.statut AS statut")) return Map.of("statut", "BROUILLON", "demandeur", demandeurId,
+                    "objet", "Achat de test", "centre_cout_id", 3, "reference", "DA-TEST", "matricule", "demandeur");
             if (sql.contains("SELECT statut AS statut")) return Map.of("statut", "BROUILLON", "demandeur", demandeurId);
             if (sql.contains("SELECT manager_id, service_id")) return Map.of("manager_id", 11, "service_id", 8);
             if (sql.contains("SELECT d.id AS id")) return new java.util.HashMap<>(Map.of("id", 5, "statut", "SOUMISE"));
@@ -189,6 +229,7 @@ class AchatWorkflowSoumissionTest {
         Mockito.lenient().when(jdbc.queryForObject(anyString(), eq(Integer.class), any(Object[].class)))
                 .thenAnswer(invocation -> {
                     String sql = invocation.getArgument(0);
+                    if (sql.contains("count(*) FROM public.ligne_demande l")) return 0;
                     if (sql.contains("count(*) FROM public.ligne_demande")) return 1;
                     if (sql.contains("COALESCE(MAX(tentative)")) return derniereTentative;
                     if (sql.contains("decision='PRECISION_DEMANDEE'")) return precisionsDemandees;

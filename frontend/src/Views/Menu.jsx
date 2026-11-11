@@ -39,6 +39,7 @@ import Categories from './Categories.jsx';
 import Dashboard from './Dashboard.jsx';
 import Commandes from './Commandes.jsx';
 import Parametres from './Parametres.jsx';
+import PasswordChange from './PasswordChange.jsx';
 import Demandes from './Demandes.jsx';
 import Validations from './Validations.jsx';
 import Fournisseurs from './Fournisseurs.jsx';
@@ -963,6 +964,17 @@ export default function Menu({ onLogout }) {
                                             role="menuitem"
                                             onClick={() => {
                                                 setShowMenu(false);
+                                                navigate('/menu/password');
+                                            }}
+                                        >
+                                            Modifier le mot de passe
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() => {
+                                                setShowMenu(false);
                                                 setShowLogoutModal(true);
                                             }}
                                         >
@@ -993,6 +1005,7 @@ export default function Menu({ onLogout }) {
                     <section className="page-content">
                         <Routes>
                             <Route index element={<Dashboard />} />
+                            <Route path="password" element={<PasswordChange />} />
 
                             <Route
                                 path="demandes"

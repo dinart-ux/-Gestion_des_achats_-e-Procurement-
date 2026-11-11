@@ -2,6 +2,7 @@ package com.example.backend.Service;
 
 import com.example.backend.DTO.AchatRequests;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -26,7 +27,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AchatWorkflowOffreTest {
     @Mock private JdbcTemplate jdbc;
-    @InjectMocks private AchatWorkflowService service;
+    @Mock private NotificationService notificationService;
+    @Mock private WorkflowEventService workflowEventService;
+    @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    @Mock private UtilisateurAuthStateService authStateService;
+    private AchatWorkflowService service;
+
+    @BeforeEach void setUpService() {
+        service = new AchatWorkflowService(jdbc, notificationService, workflowEventService,
+                passwordEncoder, authStateService, false);
+    }
 
     @Test
     void selectionNePeutPasReactiverUneOffreRefusee() {

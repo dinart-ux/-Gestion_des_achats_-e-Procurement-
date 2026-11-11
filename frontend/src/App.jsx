@@ -9,6 +9,7 @@ import {
 import './App.css';
 
 import Login from './Views/Login';
+import PasswordRecovery from './Views/PasswordRecovery';
 import Menu from './Views/Menu';
 import NotificationsSocket from './service/notificationsSocket';
 import { getStoredUser } from './service/roleUtils';
@@ -34,6 +35,8 @@ function AppRoutes() {
                         : <Login />
                 }
             />
+            <Route path="/forgot-password" element={<PasswordRecovery mode="forgot" />} />
+            <Route path="/reset-password" element={<PasswordRecovery mode="reset" />} />
 
             <Route
                 path="/menu/*"

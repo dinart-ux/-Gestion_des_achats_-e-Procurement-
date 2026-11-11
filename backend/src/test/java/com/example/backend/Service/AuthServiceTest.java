@@ -7,7 +7,6 @@ import com.example.backend.Repository.RoleRepository;
 import com.example.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,12 +32,16 @@ class AuthServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
-    @InjectMocks
+    @Mock
+    private UtilisateurAuthStateService authStateService;
+
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        authService = new AuthService(authenticationManager, utilisateurRepository,
+                roleRepository, jwtUtil, authStateService, false);
     }
 
     @Test
@@ -77,6 +80,7 @@ class AuthServiceTest {
 
         verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(utilisateurRepository, times(1)).findByMatricule(matricule);
+        verify(authStateService, never()).requireAndGetVersion(any());
     }
 
     @Test

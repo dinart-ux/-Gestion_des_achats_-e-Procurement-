@@ -6,6 +6,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -34,7 +35,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AchatWorkflowBudgetTest {
     @Mock private JdbcTemplate jdbc;
-    @InjectMocks private AchatWorkflowService service;
+    @Mock private NotificationService notificationService;
+    @Mock private WorkflowEventService workflowEventService;
+    @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    @Mock private UtilisateurAuthStateService authStateService;
+    private AchatWorkflowService service;
+
+    @BeforeEach void setUpService() {
+        service = new AchatWorkflowService(jdbc, notificationService, workflowEventService,
+                passwordEncoder, authStateService, false);
+    }
 
     @Test
     void consultationCalculeSoldePourcentageEtAlerteAvecGardeSurZero() {

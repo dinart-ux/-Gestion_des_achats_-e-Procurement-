@@ -339,24 +339,23 @@ class BackendApplicationTests {
 	}
 
 	@Test
-	void validationRefuseUneDemandeSansLigne() throws Exception {
+	void creationAccepteUnBrouillonSansLigneAvantSoumission() throws Exception {
 		mvc.perform(post("/api/v2/demandes")
 					.with(user("demandeur@example.test").roles("DEMANDEUR"))
 					.contentType(APPLICATION_JSON)
 					.content("{\"centreCoutId\":1,\"objet\":\"Fournitures\",\"lignes\":[]}"))
-				.andExpect(status().isBadRequest());
+				.andExpect(status().isCreated());
 	}
 
 	@Test
-	void demandeRefuseQuantiteNulleTypeInvalideEtObjetTropLong() throws Exception {
+	void creationAccepteUneQuantiteNulleEnBrouillonEtRefuseUnObjetTropLong() throws Exception {
 		mvc.perform(post("/api/v2/demandes")
 					.with(user("demandeur@example.test").roles("DEMANDEUR"))
 					.contentType(APPLICATION_JSON)
 					.content("""
-							{"centreCoutId":1,"objet":"Achat","lignes":[{"type":"AUTRE","designation":"Papier","quantite":0,"prixUnitaireEstime":2}]}
+							{"centreCoutId":1,"objet":"Achat","lignes":[{"type":"ARTICLE","designation":"Papier","quantite":0,"prixUnitaireEstime":2}]}
 							"""))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message").exists());
+				.andExpect(status().isCreated());
 
 		mvc.perform(post("/api/v2/demandes")
 					.with(user("demandeur@example.test").roles("DEMANDEUR"))

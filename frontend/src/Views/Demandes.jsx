@@ -39,8 +39,20 @@ export default function Demandes() {
   const [loading, setLoading] = useState(true);
   const {error,success,setError,setSuccess,} = useToastMessages();
   const [saving, setSaving] = useState(false);
+  const [autosaveStatus, setAutosaveStatus] = useState('');
+  const [autosaveFailed, setAutosaveFailed] = useState(false);
 
   const savingRef = useRef(false);
+  const saveQueueRef = useRef(Promise.resolve());
+  const draftIdRef = useRef(null);
+  const draftKeyRef = useRef(null);
+  const createDraftPromiseRef = useRef(null);
+  const creationFailedRef = useRef(false);
+  const revisionRef = useRef(0);
+  const autosaveTimerRef = useRef(null);
+  const pendingSavesRef = useRef(0);
+  const latestFormRef = useRef(form);
+  const latestVersionRef = useRef(0);
 
   // Recherche des demandes
   const filteredDemandes = demandes.filter((demande) => {
@@ -167,11 +179,37 @@ useEffect(() => {
   // Fermer et réinitialiser le formulaire
   const closeForm = () => {
     if (savingRef.current) return;
+    if (autosaveTimerRef.current !== null) {
+      window.clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+      persistDraft(form).then(() => closeForm()).catch(() => {});
+      return;
+    }
+    if (pendingSavesRef.current > 0) {
+      savingRef.current = true;
+      setSaving(true);
+      saveQueueRef.current.then(() => {
+        savingRef.current = false;
+        setSaving(false);
+        closeForm();
+      }, () => {
+        savingRef.current = false;
+        setSaving(false);
+        setError('La dernière sauvegarde a échoué. Le formulaire reste ouvert pour réessayer.');
+      });
+      return;
+    }
 
     setForm(initialForm());
     setEditingId(null);
+    draftIdRef.current = null;
+    draftKeyRef.current = null;
+    createDraftPromiseRef.current = null;
+    creationFailedRef.current = false;
+    revisionRef.current = 0;
     setFormOpen(false);
     setError('');
+    load();
   };
 
   // Ouvrir la modale pour une nouvelle demande
@@ -180,6 +218,12 @@ useEffect(() => {
 
     setForm(initialForm());
     setEditingId(null);
+    draftIdRef.current = null;
+    draftKeyRef.current = crypto.randomUUID();
+    createDraftPromiseRef.current = null;
+    creationFailedRef.current = false;
+    setAutosaveFailed(false);
+    revisionRef.current = 0;
     setSelected(null);
     setError('');
     setSuccess('');
@@ -227,67 +271,111 @@ useEffect(() => {
     }));
   };
 
-  // Enregistrer un brouillon ou une modification
+  const persistDraft = (snapshot, version = latestVersionRef.current) => {
+    pendingSavesRef.current += 1;
+    saveQueueRef.current = saveQueueRef.current.catch(() => {}).then(async () => {
+      if (version < latestVersionRef.current &&
+          JSON.stringify(snapshot) !== JSON.stringify(latestFormRef.current)) return null;
+      const payload = {
+        ...snapshot,
+        centreCoutId: snapshot.centreCoutId ? Number(snapshot.centreCoutId) : null,
+        revision: revisionRef.current,
+        cleBrouillon: draftKeyRef.current,
+        lignes: snapshot.lignes.map((line) => ({
+          ...line,
+          categorieId: line.categorieId ? Number(line.categorieId) : null,
+          quantite: line.quantite === '' ? null : Number(line.quantite),
+          prixUnitaireEstime: line.prixUnitaireEstime === '' ? null : Number(line.prixUnitaireEstime),
+          designation: line.designation || null,
+        })),
+      };
+      const id = draftIdRef.current;
+      let response;
+      if (id) {
+        response = await workflowApi.put(`/demandes/${id}`, payload);
+        revisionRef.current = Number(response.data.revision ?? revisionRef.current + 1);
+      } else {
+        if (creationFailedRef.current) {
+          throw new Error('La création du brouillon a échoué. Corrigez le problème puis réessayez la sauvegarde.');
+        }
+        if (!createDraftPromiseRef.current) {
+          createDraftPromiseRef.current = workflowApi.post('/demandes', payload)
+            .then((created) => {
+              draftIdRef.current = created.data.id;
+              draftKeyRef.current = created.data.cle_brouillon || draftKeyRef.current;
+              revisionRef.current = Number(created.data.revision ?? 0);
+              return created;
+            })
+            .catch((e) => {
+              creationFailedRef.current = true;
+              setAutosaveFailed(true);
+              throw e;
+            })
+            .finally(() => { createDraftPromiseRef.current = null; });
+        }
+        response = await createDraftPromiseRef.current;
+      }
+      setEditingId(response.data.id);
+      setAutosaveFailed(false);
+      setAutosaveStatus('Brouillon enregistré');
+      return response.data;
+    }).catch((e) => {
+      setAutosaveStatus(e.response?.data?.message || 'Échec de la sauvegarde. Vérifiez votre connexion ou réessayez manuellement.');
+      if (formOpen && e.config && !e.response) {
+        window.setTimeout(() => persistDraft(latestFormRef.current, latestVersionRef.current).catch(() => {}), 2000);
+      }
+      throw e;
+    });
+    return saveQueueRef.current.finally(() => {
+      pendingSavesRef.current = Math.max(0, pendingSavesRef.current - 1);
+    });
+  };
+
+  const retryAutosave = () => {
+    creationFailedRef.current = false;
+    setAutosaveFailed(false);
+    persistDraft(latestFormRef.current, latestVersionRef.current).catch(() => {});
+  };
+
+  // Sauvegarde périodique vers l'API : fermeture ou déconnexion ne modifie jamais le statut.
+  useEffect(() => {
+    if (!formOpen) return undefined;
+    latestFormRef.current = form;
+    latestVersionRef.current += 1;
+    const version = latestVersionRef.current;
+    setAutosaveStatus('Modifications en attente…');
+    const timer = window.setTimeout(() => {
+      autosaveTimerRef.current = null;
+      if (!savingRef.current) persistDraft(form, version).catch(() => {});
+    }, editingId ? 150 : 0);
+    autosaveTimerRef.current = timer;
+    return () => window.clearTimeout(timer);
+  }, [form, formOpen]);
+
+  // La soumission explicite attend la dernière sauvegarde avant de lancer le workflow.
   const saveDraft = async (event) => {
     event.preventDefault();
-
     if (savingRef.current) return;
-
-    if (!form.centreCoutId) {
-      setError('Veuillez sélectionner un centre de coût.');
-      return;
-    }
-
-    if (!form.objet.trim()) {
-      setError('Veuillez renseigner l’objet de la demande.');
-      return;
-    }
-
-    if (form.lignes.length === 0) {
-      setError('Ajoutez au moins une ligne à la demande.');
-      return;
-    }
-
+    window.clearTimeout(autosaveTimerRef.current);
     savingRef.current = true;
     setSaving(true);
     setError('');
-    setSuccess('');
-
+    creationFailedRef.current = false;
+    setAutosaveFailed(false);
     try {
-      const payload = {
-        ...form,
-        centreCoutId: Number(form.centreCoutId),
-        lignes: form.lignes.map((line) => ({
-          ...line,
-          categorieId: line.categorieId
-            ? Number(line.categorieId)
-            : null,
-          quantite: Number(line.quantite),
-          prixUnitaireEstime: Number(line.prixUnitaireEstime),
-        })),
-      };
-
-      const { data } = editingId
-        ? await workflowApi.put(`/demandes/${editingId}`, payload)
-        : await workflowApi.post('/demandes', payload);
-
-      setSuccess(
-        editingId
-          ? 'Demande modifiée avec succès.'
-          : 'Demande créée avec succès.'
-      );
-
+      await persistDraft(form);
+      const { data } = await workflowApi.post(`/demandes/${draftIdRef.current}/soumettre`);
+      setSuccess('Demande soumise à validation.');
       setForm(initialForm());
       setEditingId(null);
+      draftIdRef.current = null;
+      draftKeyRef.current = null;
+      revisionRef.current = 0;
       setFormOpen(false);
-
       await load();
       setSelected(data);
     } catch (e) {
-      setError(
-        e.response?.data?.message ||
-        'Impossible d’enregistrer la demande.'
-      );
+      setError(e.response?.data?.message || 'Impossible de sauvegarder ou soumettre la demande.');
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -348,6 +436,12 @@ useEffect(() => {
   // Modifier un brouillon depuis ses détails
   const editDraft = (draft) => {
     setEditingId(draft.id);
+    draftIdRef.current = draft.id;
+    draftKeyRef.current = draft.cle_brouillon || null;
+    createDraftPromiseRef.current = null;
+    creationFailedRef.current = false;
+    setAutosaveFailed(false);
+    revisionRef.current = Number(draft.revision || 0);
 
     setForm({
       centreCoutId: String(draft.centre_cout_id),
@@ -476,6 +570,12 @@ useEffect(() => {
                   <p>
                     Renseignez les informations et les articles demandés.
                   </p>
+                  <p role="status" aria-live="polite">{autosaveStatus}</p>
+                  {autosaveFailed && (
+                    <button type="button" onClick={retryAutosave} disabled={saving}>
+                      Réessayer la sauvegarde
+                    </button>
+                  )}
                 </div>
 
                 <button
@@ -690,9 +790,7 @@ useEffect(() => {
                   className="action-button"
                   disabled={saving || !form.centreCoutId}
                 >
-                  {saving
-                    ? 'Enregistrement…'
-                    : 'Enregistrer le brouillon'}
+                  {saving ? 'Enregistrement…' : 'Soumettre la demande'}
                 </IconActionButton>
               </div>
             </form>

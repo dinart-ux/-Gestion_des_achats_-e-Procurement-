@@ -32,6 +32,9 @@ class UtilisateurServiceTest {
 
         private final ManagerRepository managers = mock(ManagerRepository.class);
 
+        private final UtilisateurAuthStateService authStateService =
+                mock(UtilisateurAuthStateService.class);
+
         private final LegacyAwarePasswordEncoder passwordEncoder =new LegacyAwarePasswordEncoder();
 
         private final UtilisateurService utilisateurService =
@@ -39,7 +42,9 @@ class UtilisateurServiceTest {
                         utilisateurs,
                         roles,
                         managers,
-                        passwordEncoder
+                        passwordEncoder,
+                        authStateService,
+                        false
                 );
 
         @Test

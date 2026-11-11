@@ -10,7 +10,7 @@ const safeNumber = (value) => {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
 };
-
+;
 const formatMoney = (value) => new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'MGA',

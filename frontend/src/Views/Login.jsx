@@ -119,11 +119,10 @@ export default function Login() {
                                         type="button"
                                         className="link-button"
                                         onClick={() => {
-                                            setError('');
-                                            setFlipped(true);
+                                            navigate('/forgot-password');
                                         }}
                                     >
-                                        Contacter votre administrateur
+                                        Réinitialiser par e-mail
                                     </button>
                                 </div>
                             </div>
