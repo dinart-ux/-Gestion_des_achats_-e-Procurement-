@@ -2,6 +2,8 @@ package com.example.backend.Service;
 
 import com.example.backend.Persistence.PasswordResetTokenEntity;
 import com.example.backend.Repository.PasswordResetTokenRepository;
+import com.example.backend.Repository.UtilisateurRepository;
+import com.example.backend.Models.Utilisateur;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,16 +27,18 @@ public class PasswordResetTokenService {
     private static final int TOKEN_BYTES = 32;
 
     private final PasswordResetTokenRepository tokenRepository;
+    private final UtilisateurRepository utilisateurRepository;
     private final Clock clock;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Autowired
-    public PasswordResetTokenService(PasswordResetTokenRepository tokenRepository) {
-        this(tokenRepository, Clock.systemUTC());
+    public PasswordResetTokenService(PasswordResetTokenRepository tokenRepository, UtilisateurRepository utilisateurRepository) {
+        this(tokenRepository, utilisateurRepository, Clock.systemUTC());
     }
 
-    PasswordResetTokenService(PasswordResetTokenRepository tokenRepository, Clock clock) {
+    PasswordResetTokenService(PasswordResetTokenRepository tokenRepository, UtilisateurRepository utilisateurRepository, Clock clock) {
         this.tokenRepository = tokenRepository;
+        this.utilisateurRepository = utilisateurRepository;
         this.clock = clock;
     }
 
@@ -48,13 +52,16 @@ public class PasswordResetTokenService {
             throw new IllegalArgumentException("L'utilisateur est obligatoire.");
         }
 
+        Utilisateur utilisateur = utilisateurRepository.findByIdForUpdate(utilisateurId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable."));
+
         Instant now = clock.instant();
         tokenRepository.invalidateUnusedTokens(utilisateurId, now);
 
         String rawToken = generateRawToken();
 
         PasswordResetTokenEntity entity = new PasswordResetTokenEntity();
-        entity.setUtilisateurId(utilisateurId);
+        entity.setUtilisateurId(utilisateur.getId());
         entity.setTokenHash(hashToken(rawToken));
         entity.setCreatedAt(now);
         entity.setExpiresAt(now.plus(TOKEN_VALIDITY));
@@ -63,7 +70,9 @@ public class PasswordResetTokenService {
         return rawToken;
     }
 
-    @Transactional(readOnly = true)
+    // findByTokenHash garde un verrou pessimiste ; cette lecture doit donc
+    // s'exécuter dans une transaction d'écriture.
+    @Transactional(readOnly = false)
     public boolean isValid(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
             return false;

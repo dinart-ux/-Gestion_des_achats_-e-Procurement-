@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -21,17 +22,20 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
     private final UtilisateurAuthStateService authStateService;
+    private final boolean authStateEnabled;
 
     public AuthService(AuthenticationManager authenticationManager,
                        UtilisateurRepository utilisateurRepository,
                        RoleRepository roleRepository,
                        JwtUtil jwtUtil,
-                       UtilisateurAuthStateService authStateService) {
+                       UtilisateurAuthStateService authStateService,
+                       @Value("${app.security.auth-state.enabled:false}") boolean authStateEnabled) {
         this.authenticationManager = authenticationManager;
         this.utilisateurRepository = utilisateurRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
         this.authStateService = authStateService;
+        this.authStateEnabled = authStateEnabled;
     }
 
     public LoginResponse connecter(String identifiant, String password) {
@@ -47,8 +51,10 @@ public class AuthService {
                         "Utilisateur non trouvé avec ce matricule ou cette adresse email."));
 
         // Génération du token en passant le matricule (String) à JwtUtil
-        int authVersion = authStateService.ensureAndGetVersion(utilisateur.getId());
-        String token = jwtUtil.generateToken(utilisateur.getMatricule(), authVersion);
+        String token = authStateEnabled
+                ? jwtUtil.generateToken(utilisateur.getMatricule(),
+                        authStateService.requireAndGetVersion(utilisateur.getId()))
+                : jwtUtil.generateToken(utilisateur.getMatricule());
 
         return new LoginResponse(
                 "Connexion réussie",

@@ -47,21 +47,27 @@ public class UtilisateurAuthStateService {
     }
 
     @Transactional
+    public int requireAndGetVersion(Integer utilisateurId) {
+        if (utilisateurId == null) {
+            throw new IllegalStateException("État d'authentification utilisateur absent.");
+        }
+        return stateRepository.findById(utilisateurId)
+                .map(UtilisateurAuthStateEntity::getTokenVersion)
+                .orElseThrow(() -> new IllegalStateException(
+                        "État d'authentification utilisateur absent."));
+    }
+
+    @Transactional
     public int incrementVersion(Integer utilisateurId) {
         if (utilisateurId == null) {
             throw new IllegalArgumentException("L'utilisateur est obligatoire.");
         }
 
-        UtilisateurAuthStateEntity state = stateRepository.findById(utilisateurId)
-                .orElseGet(() -> {
-                    UtilisateurAuthStateEntity newState = new UtilisateurAuthStateEntity();
-                    newState.setUtilisateurId(utilisateurId);
-                    return newState;
-                });
-
-        state.setTokenVersion(Math.incrementExact(state.getTokenVersion()));
-        stateRepository.save(state);
-        return state.getTokenVersion();
+        int updated = stateRepository.incrementVersion(utilisateurId);
+        if (updated != 1) {
+            throw new IllegalStateException("État d'authentification utilisateur absent.");
+        }
+        return stateRepository.findById(utilisateurId).orElseThrow().getTokenVersion();
     }
 
     @Transactional(readOnly = true)
@@ -73,7 +79,7 @@ public class UtilisateurAuthStateService {
         return utilisateurRepository.findByMatricule(matricule)
                 .map(Utilisateur::getId)
                 .map(stateRepository::findById)
-                .map(state -> state.map(UtilisateurAuthStateEntity::getTokenVersion).orElse(0))
+                .map(state -> state.map(UtilisateurAuthStateEntity::getTokenVersion).orElse(-1))
                 .orElse(-1) == tokenVersion;
     }
 }

@@ -22,16 +22,18 @@ public final class AchatRequests {
 
     public record LigneDemande(
             Integer categorieId,
-            @NotBlank(message = "Le type de ligne est obligatoire.") @Pattern(regexp = "ARTICLE|SERVICE", message = "Le type doit être ARTICLE ou SERVICE.") String type,
-            @NotBlank @Size(max = 200, message = "La désignation ne peut pas dépasser 200 caractères.") String designation,
-            @NotNull(message = "La quantité est obligatoire.") @Positive(message = "La quantité doit être supérieure à zéro.") @Digits(integer = 10, fraction = 2, message = "La quantité doit avoir au plus 10 chiffres et 2 décimales.") BigDecimal quantite,
-            @NotNull(message = "Le prix unitaire est obligatoire.") @PositiveOrZero(message = "Le prix unitaire doit être positif ou nul.") @Digits(integer = 13, fraction = 2, message = "Le prix unitaire doit avoir au plus 13 chiffres et 2 décimales.") BigDecimal prixUnitaireEstime) {}
+            String type,
+            @Size(max = 200, message = "La désignation ne peut pas dépasser 200 caractères.") String designation,
+            @Digits(integer = 10, fraction = 2, message = "La quantité doit avoir au plus 10 chiffres et 2 décimales.") BigDecimal quantite,
+            @Digits(integer = 13, fraction = 2, message = "Le prix unitaire doit avoir au plus 13 chiffres et 2 décimales.") BigDecimal prixUnitaireEstime) {}
 
     public record Demande(
-            @NotNull(message = "Le centre de coût est obligatoire.") @Positive(message = "Sélectionnez un centre de coût valide.") Integer centreCoutId,
-            @NotBlank(message = "L’objet de la demande est obligatoire.") @Size(max = 200, message = "L’objet ne peut pas dépasser 200 caractères.") String objet,
+            Integer centreCoutId,
+            @Size(max = 200, message = "L’objet ne peut pas dépasser 200 caractères.") String objet,
             String justification,
-            @NotEmpty(message = "La demande doit contenir au moins une ligne.") List<@Valid LigneDemande> lignes) {}
+            List<@Valid LigneDemande> lignes,
+            Long revision,
+            @Size(max = 36, message = "La clé du brouillon est invalide.") String cleBrouillon) {}
 
     public record Decision(@NotBlank String decision, String commentaire) {}
 

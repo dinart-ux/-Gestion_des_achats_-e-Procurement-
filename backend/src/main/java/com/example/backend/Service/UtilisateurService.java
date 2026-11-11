@@ -11,6 +11,7 @@ import com.example.backend.Repository.ManagerRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,18 +24,21 @@ public class UtilisateurService {
         private final ManagerRepository managers;
         private final PasswordEncoder passwordEncoder;
         private final UtilisateurAuthStateService authStateService;
+        private final boolean authStateEnabled;
 
         public UtilisateurService(
                 UtilisateurRepository utilisateurs,
                 RoleRepository roles,
                 ManagerRepository managers,
                 PasswordEncoder passwordEncoder,
-                UtilisateurAuthStateService authStateService) {
+                UtilisateurAuthStateService authStateService,
+                @Value("${app.security.auth-state.enabled:false}") boolean authStateEnabled) {
         this.utilisateurs = utilisateurs;
         this.roles = roles;
         this.managers = managers;
         this.passwordEncoder = passwordEncoder;
         this.authStateService = authStateService;
+        this.authStateEnabled = authStateEnabled;
         }
 
         @Transactional(readOnly = true)
@@ -96,7 +100,7 @@ public class UtilisateurService {
         utilisateur.setManagerId(managerId);
 
         Utilisateur saved = utilisateurs.save(utilisateur);
-        authStateService.ensureState(saved.getId());
+        if (authStateEnabled) authStateService.ensureState(saved.getId());
         return reponse(saved);
     }
 

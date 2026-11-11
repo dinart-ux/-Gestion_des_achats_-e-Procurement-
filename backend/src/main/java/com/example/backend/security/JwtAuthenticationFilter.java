@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -22,14 +23,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
     private final UtilisateurAuthStateService authStateService;
+    private final boolean authStateEnabled;
 
     public JwtAuthenticationFilter(
             JwtUtil jwtUtil,
             CustomUserDetailsService userDetailsService,
-            UtilisateurAuthStateService authStateService) {
+            UtilisateurAuthStateService authStateService,
+            @Value("${app.security.auth-state.enabled:false}") boolean authStateEnabled) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.authStateService = authStateService;
+        this.authStateEnabled = authStateEnabled;
     }
 
     @Override
@@ -43,8 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 if (jwtUtil.isTokenValid(token)) {
                     String username = jwtUtil.extractUsername(token);
-                    int authVersion = jwtUtil.extractAuthVersion(token);
-                    if (authStateService.isCurrentVersion(username, authVersion)) {
+                    boolean versionAccepted = !authStateEnabled
+                            || authStateService.isCurrentVersion(username, jwtUtil.extractAuthVersion(token));
+                    if (versionAccepted) {
                         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                         if (userDetails.isEnabled()) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

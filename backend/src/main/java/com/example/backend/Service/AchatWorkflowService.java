@@ -3,7 +3,9 @@ package com.example.backend.Service;
 import com.example.backend.DTO.AchatRequests;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,15 +25,24 @@ public class AchatWorkflowService {
     private final JdbcTemplate jdbc;
     private final NotificationService notificationService;
     private final WorkflowEventService workflowEventService;
+    private final PasswordEncoder passwordEncoder;
+    private final UtilisateurAuthStateService authStateService;
+    private final boolean authStateEnabled;
 
     public AchatWorkflowService(
             JdbcTemplate jdbc,
             NotificationService notificationService,
-            WorkflowEventService workflowEventService) {
+            WorkflowEventService workflowEventService,
+            PasswordEncoder passwordEncoder,
+            UtilisateurAuthStateService authStateService,
+            @Value("${app.security.auth-state.enabled:false}") boolean authStateEnabled) {
 
         this.jdbc = jdbc;
         this.notificationService = notificationService;
         this.workflowEventService = workflowEventService;
+        this.passwordEncoder = passwordEncoder;
+        this.authStateService = authStateService;
+        this.authStateEnabled = authStateEnabled;
     }
 
     public List<Map<String, Object>> demandes(String email, String role) {
@@ -45,11 +56,11 @@ public class AchatWorkflowService {
                 JOIN public.utilisateurs u ON u.id = d.demandeur_id
                 """;
         if (role.equals("ADMIN") || role.equals("SERVICE_ACHATS")) {
-            return jdbc.queryForList(sql + " ORDER BY d.date_creation DESC");
+            return jdbc.queryForList(sql + " WHERE d.statut <> 'BROUILLON' ORDER BY d.date_creation DESC");
         }
         if (role.equals("MANAGER")) {
             return jdbc.queryForList(sql + " WHERE d.demandeur_id = ?"
-                    + " OR u.manager_id = ?"
+                    + " OR (d.statut <> 'BROUILLON' AND u.manager_id = ?)"
                     + " ORDER BY d.date_creation DESC", uid, uid);
         }
         return jdbc.queryForList(sql + " WHERE d.demandeur_id = ?"
@@ -59,17 +70,26 @@ public class AchatWorkflowService {
     @Transactional
     public Map<String, Object> creerDemande(String email, AchatRequests.Demande request) {
         int demandeurId = userId(email);
-        verifierCentrePourUtilisateur(demandeurId, request.centreCoutId());
+        if (request.cleBrouillon() != null && !request.cleBrouillon().isBlank()) {
+            List<Integer> demandesExistantes = jdbc.queryForList("""
+                    SELECT id FROM public.demande_achat
+                    WHERE cle_brouillon=? AND demandeur_id=? AND statut='BROUILLON'
+                    """, Integer.class, request.cleBrouillon(), demandeurId);
+            if (!demandesExistantes.isEmpty()) {
+                return modifierBrouillon(demandesExistantes.get(0), email, request);
+            }
+        }
+        if (request.centreCoutId() != null) verifierCentrePourUtilisateur(demandeurId, request.centreCoutId());
         BigDecimal total = totalDemande(request.lignes());
         String reference = "DA-" + LocalDate.now().toString().replace("-", "") + "-"
                 + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Integer id = jdbc.queryForObject("""
                 INSERT INTO public.demande_achat
-                    (reference, objet, statut, justification, centre_cout_id, demandeur_id, montant_estime, date_creation)
-                VALUES (?, ?, 'BROUILLON', ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    (reference, objet, statut, justification, centre_cout_id, demandeur_id, montant_estime, date_creation, cle_brouillon)
+                VALUES (?, ?, 'BROUILLON', ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
                 RETURNING id
-                """, Integer.class, reference, request.objet().trim(),
-                request.justification(), request.centreCoutId(), demandeurId, total);
+                """, Integer.class, reference, chaineOuNull(request.objet()),
+                request.justification(), request.centreCoutId(), demandeurId, total, request.cleBrouillon());
         insererLignes(id, request.lignes());
         historique(id, null, "BROUILLON", demandeurId, "Création du brouillon");
         return detailDemande(id);
@@ -78,16 +98,22 @@ public class AchatWorkflowService {
     @Transactional
     public Map<String, Object> modifierBrouillon(long id, String email, AchatRequests.Demande request) {
         int uid = userId(email);
-        Map<String, Object> current = jdbc.queryForMap("SELECT statut AS statut, demandeur_id AS demandeur FROM public.demande_achat WHERE id=? FOR UPDATE", id);
+        Map<String, Object> current = jdbc.queryForMap("SELECT statut AS statut, demandeur_id AS demandeur, revision AS revision FROM public.demande_achat WHERE id=? FOR UPDATE", id);
         verifierProprietaire(current, uid);
         if (!"BROUILLON".equals(current.get("statut"))) throw new IllegalArgumentException("Seul un brouillon peut être modifié.");
-        verifierCentrePourUtilisateur(uid, request.centreCoutId());
+        long revisionCourante = current.get("revision") instanceof Number n ? n.longValue() : 0L;
+        if (request.revision() != null && request.revision() != revisionCourante) {
+            throw new IllegalArgumentException("Ce brouillon a été modifié ailleurs. Rechargez-le avant de continuer.");
+        }
+        if (request.centreCoutId() != null) verifierCentrePourUtilisateur(uid, request.centreCoutId());
         BigDecimal total = totalDemande(request.lignes());
-        jdbc.update("""
+        int updated = jdbc.update("""
                 UPDATE public.demande_achat
-                SET centre_cout_id=?, objet=?, justification=?, montant_estime=?
-                WHERE id=?
-                """, request.centreCoutId(), request.objet().trim(), request.justification(), total, id);
+                SET centre_cout_id=?, objet=?, justification=?, montant_estime=?, revision=revision+1
+                WHERE id=? AND revision=?
+                """, request.centreCoutId(), chaineOuNull(request.objet()), request.justification(), total, id,
+                request.revision() == null ? revisionCourante : request.revision());
+        if (updated != 1) throw new IllegalArgumentException("Ce brouillon a été modifié ailleurs. Rechargez-le avant de continuer.");
         jdbc.update("DELETE FROM public.ligne_demande WHERE demande_id=?", id);
         insererLignes((int) id, request.lignes());
         return detailDemande(id);
@@ -127,6 +153,7 @@ public class AchatWorkflowService {
         String email = (String) payload.get("email");
         //mot de passe temporaire par défaut
         String motDePasse = payload.get("motDePasse") != null ? (String) payload.get("motDePasse") : "Pass1234@";
+        String motDePasseEncode = passwordEncoder.encode(motDePasse);
         Integer roleId = ((Number) payload.get("roleId")).intValue();
         Integer serviceId = payload.get("serviceId") != null ? ((Number) payload.get("serviceId")).intValue() : null;
 
@@ -134,7 +161,9 @@ public class AchatWorkflowService {
                 INSERT INTO public.utilisateurs (matricule, nom, prenom, email, mot_de_passe, role_id, service_id, actif)
                 VALUES (?, ?, ?, ?, ?, ?, ?, true)
                 RETURNING id
-                """, Integer.class, matricule, nom, prenom, email, motDePasse, roleId, serviceId);
+                """, Integer.class, matricule, nom, prenom, email, motDePasseEncode, roleId, serviceId);
+
+        if (authStateEnabled) authStateService.ensureState(id);
 
         return Map.of("id", id, "message", "Utilisateur créé avec succès");
     }
@@ -146,12 +175,13 @@ public Map<String, Object> detailDemande(long id) {
                     d.objet AS objet, d.justification AS justification,
                     d.montant_estime AS montant_estime, d.statut AS statut,
                     d.date_creation AS date_creation, d.date_soumission AS date_soumission,
+                    d.revision AS revision, d.cle_brouillon AS cle_brouillon,
                     d.demandeur_id AS demandeur_id, d.centre_cout_id AS centre_cout_id,
                     u.nom AS demandeur_nom, u.prenom AS demandeur_prenom,
                     cc.code AS centre_cout_code, cc.libelle AS centre_cout
             FROM public.demande_achat d
             JOIN public.utilisateurs u ON u.id = d.demandeur_id
-            JOIN public.centre_cout cc ON cc.id = d.centre_cout_id
+            LEFT JOIN public.centre_cout cc ON cc.id = d.centre_cout_id
             WHERE d.id=?
             """, id);
 
@@ -374,10 +404,12 @@ public Map<String, Object> detailDemande(long id) {
 
     public Map<String, Object> demandeAccessible(long id, String email, String role) {
         Map<String, Object> demande = detailDemande(id);
-        if (role.equals("ADMIN") || role.equals("SERVICE_ACHATS")) return demande;
         int uid = userId(email);
         int demandeur = ((Number) demande.get("demandeur_id")).intValue();
         if (uid == demandeur) return demande;
+        if ("BROUILLON".equals(demande.get("statut")))
+            throw new org.springframework.security.access.AccessDeniedException("Un brouillon est accessible uniquement à son demandeur.");
+        if (role.equals("ADMIN") || role.equals("SERVICE_ACHATS")) return demande;
         if (role.equals("MANAGER") && Boolean.TRUE.equals(jdbc.queryForObject("""
                 SELECT EXISTS(SELECT 1 FROM public.utilisateurs d
                     WHERE d.id=? AND d.manager_id=?)
@@ -392,6 +424,8 @@ public Map<String, Object> detailDemande(long id) {
         SELECT d.statut AS statut,
                d.demandeur_id AS demandeur,
                d.reference AS reference,
+               d.objet AS objet,
+               d.centre_cout_id AS centre_cout_id,
                u.matricule AS matricule
         FROM public.demande_achat d
         JOIN public.utilisateurs u ON u.id = d.demandeur_id
@@ -402,6 +436,15 @@ public Map<String, Object> detailDemande(long id) {
         if (!"BROUILLON".equals(demande.get("statut"))) throw new IllegalArgumentException("Seul un brouillon peut être soumis.");
         int count = jdbc.queryForObject("SELECT count(*) FROM public.ligne_demande WHERE demande_id=?", Integer.class, id);
         if (count == 0) throw new IllegalArgumentException("Ajoutez au moins une ligne avant de soumettre la demande.");
+        if (demande.get("objet") == null || demande.get("centre_cout_id") == null || demande.get("objet").toString().isBlank())
+            throw new IllegalArgumentException("Renseignez l'objet et le centre de coût avant de soumettre la demande.");
+        Integer lignesInvalides = jdbc.queryForObject("""
+                SELECT count(*) FROM public.ligne_demande l
+                WHERE l.demande_id=? AND (l.designation IS NULL OR btrim(l.designation)='' OR
+                    l.quantite IS NULL OR l.quantite<=0 OR l.prix_unitaire_estime IS NULL OR l.prix_unitaire_estime<0)
+                """, Integer.class, id);
+        if (lignesInvalides != null && lignesInvalides > 0)
+            throw new IllegalArgumentException("Complétez chaque ligne avec une désignation, une quantité positive et un prix nul ou positif.");
         Integer derniereTentative = jdbc.queryForObject(
                 "SELECT COALESCE(MAX(tentative), 0) FROM public.validation WHERE demande_id=?",
                 Integer.class, id);
@@ -1416,6 +1459,12 @@ public List<Map<String, Object>> lignesCommande(
             String status = open == 0 ? "RECU" : "PARTIELLEMENT_RECU";
 
             jdbc.update(
+                    "UPDATE public.reception SET type_reception = ? WHERE id = ?",
+                    open == 0 ? "TOTALE" : "PARTIELLE",
+                    receptionId
+            );
+
+            jdbc.update(
                 "UPDATE public.bon_commande SET statut = CAST(? AS public.statut_bc) WHERE id = ?",
                 status,
                 commandeId
@@ -1932,7 +1981,11 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
 
     private BigDecimal totalDemande(List<AchatRequests.LigneDemande> lines) {
         BigDecimal total = BigDecimal.ZERO;
+        if (lines == null) return total;
         for (var line : lines) {
+            if (line == null || line.quantite() == null || line.prixUnitaireEstime() == null) continue;
+            if (line.quantite().signum() < 0 || line.prixUnitaireEstime().signum() < 0)
+                throw new IllegalArgumentException("La quantité et le prix doivent être positifs ou nuls.");
             total = total.add(line.quantite().multiply(line.prixUnitaireEstime())
                     .setScale(2, RoundingMode.HALF_UP));
         }
@@ -1952,11 +2005,7 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
         int requestId,
         List<AchatRequests.LigneDemande> lines) {
 
-    if (lines == null || lines.isEmpty()) {
-        throw new IllegalArgumentException(
-            "La demande doit contenir au moins une ligne."
-        );
-    }
+    if (lines == null) return;
 
     for (var line : lines) {
         if (line == null) {
@@ -1965,7 +2014,7 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
             );
         }
 
-        if (line.type() == null ||
+        if (line.type() == null || line.type().isBlank() ||
                 !(line.type().equalsIgnoreCase("ARTICLE")
                 || line.type().equalsIgnoreCase("SERVICE"))) {
             throw new IllegalArgumentException(
@@ -1973,22 +2022,7 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
             );
         }
 
-        if (line.designation() == null ||
-                line.designation().isBlank()) {
-            throw new IllegalArgumentException(
-                "La désignation est obligatoire."
-            );
-        }
-
-        if (line.quantite() == null ||
-                line.quantite().signum() <= 0) {
-            throw new IllegalArgumentException(
-                "La quantité doit être supérieure à zéro."
-            );
-        }
-
-        if (line.prixUnitaireEstime() == null ||
-                line.prixUnitaireEstime().signum() < 0) {
+        if (line.prixUnitaireEstime() != null && line.prixUnitaireEstime().signum() < 0) {
             throw new IllegalArgumentException(
                 "Le prix unitaire estimé ne peut pas être négatif."
             );
@@ -2016,7 +2050,7 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
                 requestId,
                 line.categorieId(),
                 line.type().toUpperCase(java.util.Locale.ROOT),
-                line.designation().trim(),
+                chaineOuNull(line.designation()),
                 line.quantite(),
                 line.prixUnitaireEstime()
             );
@@ -2026,6 +2060,10 @@ public Map<String, Object> creerCentreCout(Map<String, Object> payload) {
             );
         }
     }
+    }
+
+    private static String chaineOuNull(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : valeur.trim();
     }
    
 private void verifierCentrePourUtilisateur(int userId, int centreId) {

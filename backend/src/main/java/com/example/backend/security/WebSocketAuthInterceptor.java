@@ -5,6 +5,7 @@ import com.example.backend.Service.UtilisateurAuthStateService;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
@@ -20,14 +22,17 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
     private final UtilisateurAuthStateService authStateService;
+    private final boolean authStateEnabled;
 
     public WebSocketAuthInterceptor(
             JwtUtil jwtUtil,
             CustomUserDetailsService userDetailsService,
-            UtilisateurAuthStateService authStateService) {
+            UtilisateurAuthStateService authStateService,
+            @Value("${app.security.auth-state.enabled:false}") boolean authStateEnabled) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.authStateService = authStateService;
+        this.authStateEnabled = authStateEnabled;
     }
 
     @Override
@@ -66,9 +71,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             }
 
             String matricule = jwtUtil.extractUsername(token);
-            int authVersion = jwtUtil.extractAuthVersion(token);
-
-            if (!authStateService.isCurrentVersion(matricule, authVersion)) {
+            if (authStateEnabled && !authStateService.isCurrentVersion(
+                    matricule, jwtUtil.extractAuthVersion(token))) {
                 throw new AccessDeniedException(
                         "Token JWT révoqué.");
             }
@@ -87,10 +91,16 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                             null,
                             userDetails.getAuthorities());
 
-            // Conserve l'identité dans le message STOMP original
-            accessor.setUser(authentication);
+            // Les en-têtes d'un message entrant peuvent être immuables.
+            // On recrée alors le message avec un accessor mutable avant
+            // d'y conserver l'identité authentifiée.
+            StompHeaderAccessor mutableAccessor =
+                    (StompHeaderAccessor) MessageHeaderAccessor
+                            .getMutableAccessor(message);
+            mutableAccessor.setUser(authentication);
 
-            return message;
+            return MessageBuilder.createMessage(
+                    message.getPayload(), mutableAccessor.getMessageHeaders());
         }
 
         // Autoriser uniquement l'abonnement aux notifications privées

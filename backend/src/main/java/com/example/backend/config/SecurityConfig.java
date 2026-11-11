@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -51,6 +52,8 @@ SecurityFilterChain filterChain(
     return http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(Customizer.withDefaults())
+            .headers(headers -> headers.referrerPolicy(referrer ->
+                    referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)))
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
@@ -59,7 +62,7 @@ SecurityFilterChain filterChain(
                     // Connexion WebSocket initiale
                     .requestMatchers("/ws").permitAll()
                     // Routes publiques existantes
-                    .requestMatchers("/api/auth/login","/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/actuator/health","/actuator/health/**","/error").permitAll()
+                    .requestMatchers("/api/auth/login", "/api/v2/auth/password/forgot", "/api/v2/auth/password/validate", "/api/v2/auth/password/reset", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/actuator/health","/actuator/health/**","/error").permitAll()
                     .anyRequest().authenticated()
             )
 
