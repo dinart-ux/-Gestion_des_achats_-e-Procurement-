@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import workflowApi from '../service/workflowApi';
 import { useToastMessages } from '../components/notifications/ToastContext';
-import './Login.css';
+import './PasswordPages.css';
 
 export default function PasswordChange() {
   const navigate = useNavigate();

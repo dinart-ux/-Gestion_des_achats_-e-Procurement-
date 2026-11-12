@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../service/api';
 import { clearAuthSession } from '../service/session';
 import { useToastMessages } from '../components/notifications/ToastContext';
-import './Login.css';
+import './PasswordPages.css';
 
 const generic = 'Si les informations correspondent à un compte actif, vous recevrez un lien de récupération par e-mail.';
 
