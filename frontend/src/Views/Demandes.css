@@ -328,8 +328,8 @@
 }
 
 .request-search-box:focus-within {
-  border-color: #7462ed;
-  box-shadow: 0 0 0 3px rgba(116, 98, 237, 0.12);
+  border-color: var(--color-cyan, #35C6F4);
+  box-shadow: 0 0 0 3px rgba(53, 198, 244, 0.18);
 }
 
 .request-search-icon {
@@ -807,20 +807,20 @@
 .request-detail-title p { margin:5px 0 0; color:#738098; font-size:13px; }
 .request-detail-header-actions { display:flex; align-items:center; gap:12px; }
 .request-detail-status { display:inline-flex; align-items:center; min-height:28px; padding:5px 11px; border-radius:20px; background:#eef2f7; color:#536176; font-size:11px; font-weight:700; white-space:nowrap; }
-.request-detail-status.status-approuve, .request-detail-status.status-approuvée, .request-detail-status.status-validee, .request-detail-status.status-validée { background:#e8f7ee; color:#16804a; }
-.request-detail-status.status-refuse, .request-detail-status.status-refusée, .request-detail-status.status-rejetee, .request-detail-status.status-rejetée { background:#fff0f0; color:#c33c48; }
-.request-detail-status.status-en_attente, .request-detail-status.status-soumise { background:#fff6e5; color:#a66a08; }
+.request-detail-status.status-approuve, .request-detail-status.status-approuvée, .request-detail-status.status-validee, .request-detail-status.status-validée { background: var(--color-success-soft, #ECFDF5); color: #065F46; border: 1px solid var(--color-success-border, #A7F3D0); }
+.request-detail-status.status-refuse, .request-detail-status.status-refusée, .request-detail-status.status-rejetee, .request-detail-status.status-rejetée { background: var(--color-danger-soft, #FEF2F2); color: #991B1B; border: 1px solid var(--color-danger-border, #FECACA); }
+.request-detail-status.status-en_attente, .request-detail-status.status-soumise { background: var(--color-cyan-soft, #EBF9FD); color: #0E7490; border: 1px solid #BEE9F8; }
 .request-detail-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0 22px; }
 .request-detail-summary-item, .request-detail-info-card { min-width:0; padding:13px 15px; border:1px solid #e9edf4; border-radius:11px; background:#fbfcfe; }
 .request-detail-summary-item span, .request-detail-info-card > span { display:block; margin-bottom:6px; color:#7c879c; font-size:11px; font-weight:600; }
 .request-detail-summary-item strong, .request-detail-info-card strong { display:block; color:#263451; font-size:13px; overflow-wrap:anywhere; }
 .request-detail-tabs { display:flex; gap:24px; border-bottom:1px solid #e6eaf1; }
 .request-detail-tab { display:inline-flex; align-items:center; gap:9px; min-height:48px; padding:0 10px; margin-bottom:-1px; border:0; border-bottom:2px solid transparent; background:transparent; color:#738098; font:inherit; font-size:13px; font-weight:650; cursor:pointer; }
-.request-detail-tab:hover, .request-detail-tab.active { color:#5147c5; }
-.request-detail-tab.active { border-bottom-color:#6558dc; }
+.request-detail-tab:hover, .request-detail-tab.active { color: var(--color-navy, #101A4C); }
+.request-detail-tab.active { border-bottom-color: var(--color-cyan, #35C6F4); }
 .request-detail-tab > span:first-child { font-size:17px; }
 .request-detail-tab-count { display:inline-grid; min-width:21px; height:21px; padding:0 5px; place-items:center; border-radius:20px; background:#f0f1f8; color:#65718a; font-size:10px; font-weight:700; }
-.request-detail-tab.active .request-detail-tab-count { background:#eeedff; color:#5147c5; }
+.request-detail-tab.active .request-detail-tab-count { background: var(--color-cyan-soft, #EBF9FD); color: #0E7490; }
 .request-detail-panel { padding-top:22px; outline:none; }
 .request-detail-section + .request-detail-section { margin-top:22px; }
 .request-detail-section-heading { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; }

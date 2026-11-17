@@ -67,10 +67,7 @@ export default function PasswordRecovery({ mode = 'forgot' }) {
     setBusy(true);
 
     try {
-      await api.post('/v2/auth/password/forgot', {
-        matricule: form.matricule.trim(),
-        email: form.email.trim(),
-      });
+      await api.post('/v2/auth/password/forgot', { matricule: form.matricule, email: form.email });
       setSuccess(genericMessage);
     } catch {
       // Même réponse en cas d'échec pour ne pas révéler si un compte existe.

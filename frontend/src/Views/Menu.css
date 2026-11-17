@@ -2286,47 +2286,53 @@
     }
 }
 
-/* Thème partagé des pages métier, aligné sur Utilisateurs */
+/* Thème partagé des pages métier, aligné sur le Design System SaaS */
 .menu-container {
-    --spat-violet: #7b2cbf;
-    --spat-violet-dark: #64209d;
+    --spat-violet: var(--color-violet, #6C63FF);
+    --spat-violet-dark: var(--color-violet-hover, #5A52E0);
+    --spat-blue: var(--color-cyan, #35C6F4);
+    --spat-blue-light: var(--color-cyan-soft, #EBF9FD);
     min-height: 100vh;
-    color: var(--color-text, #1f2937);
-    background: var(--color-page, #f5f6fa);
+    color: var(--color-text, #172033);
+    background: var(--color-bg, #F5F7FC);
 }
 
 .sidebar {
-    background-color: #101a4c;
+    background-color: var(--color-navy, #101A4C);
     background-image:
-        linear-gradient(rgba(8, 13, 43, 1.00),rgba(8, 13, 43, 0.40)),
+        linear-gradient(rgba(8, 13, 43, 0.95), rgba(8, 13, 43, 0.65)),
         url('../assets/Image_97ip1397ip1397ip.jpeg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 .sidebar .nav-button.active {
-    border-color: var(--color-primary-border, #526a8d);
-    background: var(--color-primary, #243b64);
-    box-shadow: inset 3px 0 0 var(--color-primary-border, #526a8d);
+    border-color: rgba(108, 99, 255, 0.35);
+    background: rgba(108, 99, 255, 0.18);
+    box-shadow: inset 3px 0 0 var(--color-cyan, #35C6F4);
+    color: #FFFFFF;
 }
-.sidebar .nav-button.active .nav-button-indicator { background: #b9c8df; }
-.main-area { background: var(--color-page, #f5f6fa); }
-.main-area .menu-header h1 { color: var(--color-navy, #101a4c); }
-.profile-avatar { background: #f5edfb; color: #7b2cbf; }
+.sidebar .nav-button.active .nav-icon {
+    color: var(--color-cyan, #35C6F4);
+}
+.sidebar .nav-button.active .nav-button-indicator { background: var(--color-cyan, #35C6F4); }
+.main-area { background: var(--color-bg, #F5F7FC); }
+.main-area .menu-header h1 { color: var(--color-navy, #101A4C); }
+.profile-avatar { background: var(--color-violet-soft, #F0EFFF); color: var(--color-violet, #6C63FF); border: 2px solid rgba(255, 255, 255, 0.2); }
 .sidebar-toggle:focus-visible,
 .profile-menu-toggle:focus-visible,
-.profile-dropdown button:focus-visible { outline-color: var(--color-primary-focus, rgba(82,106,141,.35)); }
+.profile-dropdown button:focus-visible { outline-color: var(--color-cyan, #35C6F4); }
 
 .page-content {
-    --spat-violet: #7b2cbf;
-    --spat-violet-dark: #64209d;
-    --spat-blue: #7b2cbf;
-    --spat-blue-light: #f5edfb;
-    --spat-navy: var(--color-navy, #101a4c);
-    --spat-text: var(--color-text, #1f2937);
-    --spat-muted: var(--color-muted, #6b7280);
-    --spat-border: var(--color-border, #e5e7eb);
-    --spat-surface: var(--color-surface, #fff);
+    --spat-violet: var(--color-violet, #6C63FF);
+    --spat-violet-dark: var(--color-violet-hover, #5A52E0);
+    --spat-blue: var(--color-cyan, #35C6F4);
+    --spat-blue-light: var(--color-cyan-soft, #EBF9FD);
+    --spat-navy: var(--color-navy, #101A4C);
+    --spat-text: var(--color-text, #172033);
+    --spat-muted: var(--color-text-secondary, #7A8499);
+    --spat-border: var(--color-border, #E5E9F2);
+    --spat-surface: var(--color-surface, #FFFFFF);
     width: 100%;
     min-width: 0;
     color: var(--spat-text);
@@ -3433,7 +3439,7 @@ html body .menu-container .page-content select:not([multiple]) {
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
 
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237b2cbf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236C63FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
 
     background-repeat: no-repeat !important;
     background-position: right 14px center !important;
@@ -3442,14 +3448,14 @@ html body .menu-container .page-content select:not([multiple]) {
 
 /* Survol */
 html body .menu-container select:hover:not(:disabled) {
-    border-color: #b49ad0 !important;
-    background-color: #fdfaff !important;
+    border-color: var(--color-border-hover, #CBD5E1) !important;
+    background-color: #F8FAFD !important;
 }
 
 /* Focus */
 html body .menu-container select:focus {
-    border-color: #7b2cbf !important;
-    box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.13) !important;
+    border-color: var(--color-cyan, #35C6F4) !important;
+    box-shadow: 0 0 0 3px rgba(53, 198, 244, 0.18) !important;
 }
 
 /* Options */

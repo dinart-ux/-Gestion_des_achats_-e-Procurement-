@@ -45,7 +45,7 @@
 .categories-eyebrow {
     display: inline-block;
     margin-bottom: 8px;
-    color: #7561d5;
+    color: var(--color-violet, #6C63FF);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 1.4px;
@@ -75,21 +75,21 @@
     gap: 8px;
     min-height: 42px;
     padding: 0 17px;
-    border: 1px solid #6c59d2 !important;
+    border: 1px solid var(--color-violet, #6C63FF) !important;
     border-radius: 9px;
     color: #fff !important;
-    background: #6c59d2 !important;
+    background: var(--color-violet, #6C63FF) !important;
     font-size: 11px;
     font-weight: 700;
-    box-shadow: 0 4px 10px rgba(108, 89, 210, 0.17);
+    box-shadow: 0 4px 10px rgba(108, 99, 255, 0.2);
     transition: 0.2s ease;
 }
 
 .categories-add-button:hover:not(:disabled) {
-    background: #5946bd !important;
-    border-color: #5946bd !important;
+    background: var(--color-violet-hover, #5A52E0) !important;
+    border-color: var(--color-violet-hover, #5A52E0) !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(108, 89, 210, 0.24);
+    box-shadow: 0 6px 14px rgba(108, 99, 255, 0.3);
 }
 
 .categories-add-button:disabled {
@@ -413,10 +413,10 @@
 
 .categories-empty-button {
     padding: 10px 15px;
-    border: 1px solid #6c59d2;
+    border: 1px solid var(--color-violet, #6C63FF);
     border-radius: 8px;
     color: #fff;
-    background: #6c59d2;
+    background: var(--color-violet, #6C63FF);
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
@@ -424,7 +424,7 @@
 }
 
 .categories-empty-button:hover {
-    background: #5946bd;
+    background: var(--color-violet-hover, #5A52E0);
 }
 
 /* LOADING */
@@ -433,8 +433,8 @@
     width: 28px;
     height: 28px;
     margin-bottom: 12px;
-    border: 3px solid #e9e6ff;
-    border-top-color: #7460d8;
+    border: 3px solid rgba(53, 198, 244, 0.2);
+    border-top-color: var(--color-cyan, #35C6F4);
     border-radius: 50%;
     animation: categoriesSpin 0.8s linear infinite;
 }

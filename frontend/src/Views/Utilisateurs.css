@@ -1,11 +1,11 @@
 .page-content .utilisateurs-container {
   --users-navy: var(--color-navy, #101a4c);
   --users-night: var(--color-night, #080d2b);
-  --users-violet: #7b2cbf;
-  --users-bg: var(--color-page, #f5f6fa);
-  --users-border: var(--color-border, #e5e7eb);
-  --users-text: var(--color-text, #1f2937);
-  --users-muted: var(--color-muted, #6b7280);
+  --users-violet: var(--color-violet, #6C63FF);
+  --users-bg: var(--color-bg, #f5f7fc);
+  --users-border: var(--color-border, #e5e9f2);
+  --users-text: var(--color-text, #172033);
+  --users-muted: var(--color-text-secondary, #7a8499);
   width: 100%;
   min-width: 0;
   padding: 0;
@@ -46,13 +46,13 @@
 .page-content .users-field label { color: #374151; font-size: 11px; font-weight: 600; }
 .page-content .users-field label span { color: var(--users-violet); }
 .page-content .utilisateurs-container .users-field input, .page-content .utilisateurs-container .users-field select { width: 100%; min-width: 0; min-height: 37px; padding: 8px 9px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: var(--users-text); font: inherit; font-size: 12px; }
-.page-content .utilisateurs-container .users-field input:focus, .page-content .utilisateurs-container .users-field select:focus { border-color: var(--users-violet); box-shadow: 0 0 0 3px rgba(123, 44, 191, .13); outline: none; }
+.page-content .utilisateurs-container .users-field input:focus, .page-content .utilisateurs-container .users-field select:focus { border-color: var(--color-cyan, #35C6F4); box-shadow: 0 0 0 3px rgba(53, 198, 244, 0.18); outline: none; }
 .page-content .users-field input:disabled { color: #6b7280; background: #f9fafb; cursor: not-allowed; }
 .page-content .users-field small, .page-content .users-field-note { color: var(--users-muted); font-size: 10px; line-height: 1.4; }
 .page-content .users-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin: 0; }
 .page-content .users-form-actions button { min-height: 37px; padding: 8px 12px; border-radius: 7px; font-size: 11px; font-weight: 650; }
-.page-content .utilisateurs-container .users-primary-button { border: 1px solid var(--color-primary-border, #526a8d); background: var(--color-primary, #243b64); color: #fff; }
-.page-content .utilisateurs-container .users-primary-button:hover:not(:disabled) { border-color: var(--color-primary-hover, #344f7d); background: var(--color-primary-hover, #344f7d); }
+.page-content .utilisateurs-container .users-primary-button { border: 1px solid var(--color-navy, #101a4c); background: var(--color-navy, #101a4c); color: #fff; }
+.page-content .utilisateurs-container .users-primary-button:hover:not(:disabled) { border-color: #1c2b66; background: #1c2b66; }
 .page-content .utilisateurs-container .users-secondary-button { border: 1px solid var(--users-border); background: #fff; color: #4b5563; }
 .page-content .utilisateurs-container .users-secondary-button:hover:not(:disabled) { background: #f9fafb; }
 .page-content .utilisateurs-container button:disabled { cursor: not-allowed; opacity: .58; }
@@ -87,7 +87,7 @@
   padding: 0 14px 0 42px;
   box-sizing: border-box;
 }.page-content .users-search input { padding-left: 31px; }
-.page-content .users-list-controls input:focus, .page-content .users-list-controls select:focus { border-color: var(--users-violet); box-shadow: 0 0 0 3px rgba(123, 44, 191, .12); outline: none; }
+.page-content .users-list-controls input:focus, .page-content .users-list-controls select:focus { border-color: var(--color-cyan, #35C6F4); box-shadow: 0 0 0 3px rgba(53, 198, 244, 0.18); outline: none; }
 .page-content .utilisateurs-container .table-responsive { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; border: 1px solid var(--users-border); border-radius: 9px; background: #fff; scrollbar-width: thin; }
 .page-content .utilisateurs-container .table-responsive table { width: 100%; min-width: 690px; border-collapse: separate; border-spacing: 0; color: var(--users-text); font-size: 11px; text-align: left; }
 .page-content .utilisateurs-container .table-responsive th { padding: 10px 10px; border-bottom: 1px solid var(--users-border); background: #f9fafb; color: #6b7280; font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
@@ -95,17 +95,17 @@
 .page-content .utilisateurs-container .table-responsive tbody tr:last-child td { border-bottom: 0; }
 .page-content .utilisateurs-container .table-responsive tbody tr:hover { background: #faf8fd; }
 .users-identity { display: flex; align-items: center; gap: 9px; min-width: 180px; }
-.users-avatar { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; background: #f2eafb; color: #64209d; font-size: 10px; font-weight: 700; }
+.users-avatar { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; background: var(--color-violet-soft, #F0EFFF); color: var(--color-violet, #6C63FF); font-size: 10px; font-weight: 700; }
 .users-identity-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .users-identity-copy strong { color: #1f2937; font-size: 11px; font-weight: 650; }
 .users-identity-copy > span { max-width: 180px; overflow: hidden; color: var(--users-muted); font-size: 10px; text-overflow: ellipsis; }
 .users-role-badge, .users-status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid transparent; border-radius: 999px; font-size: 9px; font-weight: 650; }
-.users-role-admin { color: #64209d; background: #f5edfb; border-color: #e8d8f4; }
-.users-role-manager { color: #1d4ed8; background: #eff6ff; border-color: #dbeafe; }
+.users-role-admin { color: var(--color-violet, #6C63FF); background: var(--color-violet-soft, #F0EFFF); border-color: #D6D3FD; }
+.users-role-manager { color: #0E7490; background: var(--color-cyan-soft, #EBF9FD); border-color: #BEE9F8; }
 .users-role-service_achats { color: #9a4b0b; background: #fff7ed; border-color: #fed7aa; }
 .users-role-demandeur { color: #475569; background: #f1f5f9; border-color: #e2e8f0; }
-.users-status-active { color: #176344; background: #effaf4; border-color: #c9ead7; }
-.users-status-active > span { width: 6px; height: 6px; border-radius: 50%; background: #22a06b; }
+.users-status-active { color: #065F46; background: var(--color-success-soft, #ECFDF5); border-color: var(--color-success-border, #A7F3D0); }
+.users-status-active > span { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success, #10B981); }
 .users-status-inactive { color: #6b7280; background: #f3f4f6; border-color: #e5e7eb; }
 .users-status-inactive > span { width: 6px; height: 6px; border-radius: 50%; background: #9ca3af; }
 .page-content .utilisateurs-container .users-row-actions { display: flex; align-items: center; gap: 5px; margin: 0; }

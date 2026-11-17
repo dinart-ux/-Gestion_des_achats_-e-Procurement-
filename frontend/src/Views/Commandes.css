@@ -34,7 +34,7 @@
 
 .commande-eyebrow {
   display: inline-block;
-  color: #7562d8;
+  color: var(--color-violet, #6C63FF);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -73,9 +73,9 @@
 }
 
 .commande-refresh-button:hover {
-  border-color: #7865dc;
-  color: #6653cc;
-  background: #f8f7ff;
+  border-color: var(--color-cyan, #35C6F4);
+  color: var(--color-navy, #101A4C);
+  background: var(--color-cyan-soft, #EBF9FD);
 }
 
 .commande-refresh-button:disabled {
@@ -185,19 +185,19 @@
 }
 
 .icon-purple {
-  color: #755de0;
-  background: #f0edff;
+  color: var(--color-violet, #6C63FF);
+  background: var(--color-violet-soft, #F0EFFF);
 }
 
 .icon-blue {
-  color: #3284d6;
-  background: #eaf4ff;
+  color: #0E7490;
+  background: var(--color-cyan-soft, #EBF9FD);
   font-size: 14px;
 }
 
 .icon-green {
-  color: #159b67;
-  background: #e8f8f0;
+  color: #065F46;
+  background: var(--color-success-soft, #ECFDF5);
 }
 
 .commande-stat-card > div:last-child {

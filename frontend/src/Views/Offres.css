@@ -54,8 +54,8 @@
 
 .offers-refresh:hover,
 .offers-close-detail:hover {
-  border-color: #9b55e8;
-  color: #8538d1;
+  border-color: var(--color-cyan, #35C6F4);
+  color: var(--color-navy, #101A4C);
 }
 
 .offers-refresh:disabled,
@@ -102,13 +102,13 @@
 
 .offers-stat:hover {
   transform: translateY(-1px);
-  border-color: #b78ae8;
+  border-color: var(--color-cyan, #35C6F4);
 }
 
 .offers-stat.active {
-  border-color: #9b55e8;
-  background: #faf7ff;
-  box-shadow: 0 0 0 2px rgba(155, 85, 232, .08);
+  border-color: var(--color-violet, #6C63FF);
+  background: var(--color-violet-soft, #F0EFFF);
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.12);
 }
 
 .offers-stat-value {
@@ -329,20 +329,21 @@
 
 .offers-view-button {
   min-height: 35px;
-  border: 1px solid #9b55e8;
+  border: 1px solid var(--color-violet, #6C63FF);
   border-radius: 8px;
   background: #fff;
-  color: #873fce;
+  color: var(--color-violet, #6C63FF);
   cursor: pointer;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
   padding: 7px 11px;
   white-space: nowrap;
+  transition: all 0.18s ease;
 }
 
 .offers-view-button:hover {
-  background: #8b45d0;
+  background: var(--color-violet, #6C63FF);
   color: #fff;
 }
 

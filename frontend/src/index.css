@@ -1,122 +1,491 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --color-navy: #101a4c;
-  --color-night: #080d2b;
-  --color-primary: #243b64;
-  --color-primary-hover: #344f7d;
-  --color-primary-active: #172847;
-  --color-primary-border: #526a8d;
-  --color-primary-soft: #eef2f8;
-  --color-primary-focus: rgba(82, 106, 141, .35);
-  --color-page: #f5f6fa;
-  --color-surface: #ffffff;
-  --color-text: #1f2937;
-  --color-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --radius-card: 12px;
-  --radius-control: 7px;
-  --shadow-card: 0 2px 8px rgba(17, 24, 39, .035);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* ==========================================================================
+     PALETTE OFFICIELLE DU PROJET (SaaS E-PROCUREMENT)
+     ========================================================================== */
+  --color-navy: #101A4C;
+  --color-navy-dark: #080D2B;
+  --color-violet: #6C63FF;
+  --color-violet-hover: #5A52E0;
+  --color-violet-soft: #F0EFFF;
+  --color-cyan: #35C6F4;
+  --color-cyan-hover: #22B5E2;
+  --color-cyan-soft: #EBF9FD;
+  --color-white: #FFFFFF;
+  --color-bg: #F5F7FC;
+  --color-surface: #FFFFFF;
+  --color-text: #172033;
+  --color-text-secondary: #7A8499;
+  --color-text-muted: #9BA5B7;
+  --color-border: #E5E9F2;
+  --color-border-hover: #CBD5E1;
+
+  /* Sémantique métier */
+  --color-success: #10B981;
+  --color-success-soft: #ECFDF5;
+  --color-success-border: #A7F3D0;
+  --color-warning: #F59E0B;
+  --color-warning-soft: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-danger: #EF4444;
+  --color-danger-soft: #FEF2F2;
+  --color-danger-border: #FECACA;
+  --color-info: #35C6F4;
+  --color-info-soft: #EBF9FD;
+
+  /* Aliases de compatibilité avec les composants existants */
+  --color-night: var(--color-navy-dark);
+  --color-primary: var(--color-navy);
+  --color-primary-hover: #1c2b66;
+  --color-primary-active: var(--color-navy-dark);
+  --color-primary-border: var(--color-border);
+  --color-primary-soft: #EFF3FC;
+  --color-primary-focus: rgba(53, 198, 244, 0.4);
+  --color-page: var(--color-bg);
+  --color-muted: var(--color-text-secondary);
+
+  /* Rayons de courbure (coins arrondis élégants) */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-card: 14px;
+  --radius-control: 8px;
+  --radius-full: 9999px;
+
+  /* Ombres discrètes et soignées (style Linear / Stripe) */
+  --shadow-xs: 0 1px 2px rgba(16, 26, 76, 0.04);
+  --shadow-sm: 0 1px 3px rgba(16, 26, 76, 0.05), 0 1px 2px rgba(16, 26, 76, 0.03);
+  --shadow-card: 0 2px 8px rgba(16, 26, 76, 0.04), 0 1px 3px rgba(16, 26, 76, 0.02);
+  --shadow-md: 0 6px 16px rgba(16, 26, 76, 0.06), 0 2px 6px rgba(16, 26, 76, 0.03);
+  --shadow-lg: 0 12px 28px rgba(16, 26, 76, 0.08), 0 4px 10px rgba(16, 26, 76, 0.03);
+  --shadow-modal: 0 24px 48px -12px rgba(8, 13, 43, 0.22), 0 8px 16px -4px rgba(8, 13, 43, 0.12);
+
+  /* Typographie */
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--color-text);
-  background: var(--color-page);
+  background: var(--color-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* { box-sizing: border-box; }
+/* ==========================================================================
+   RESET & STRUCTURE DE BASE
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
 html, body, #root {
   width: 100%;
   min-width: 320px;
   min-height: 100%;
   margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
-body { min-height: 100vh; }
-button, input, select, textarea { font: inherit; }
-button:focus-visible {
-  outline: 3px solid var(--color-primary-focus);
-  outline-offset: 2px;
-}
-a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-  outline: 3px solid rgba(123, 44, 191, 0.3);
-  outline-offset: 2px;
-}
-/*///////////////////////*/
-/*liste deroulant*/
-/*///////////////////////*/
-/* ===== LISTES DÉROULANTES GLOBALES ===== */
-
-/*select {
-  width: 100%;
-  min-height: 42px;
-  padding: 10px 40px 10px 14px;
-
+body {
+  min-height: 100vh;
   font-family: inherit;
   font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Typographie globale */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--color-navy);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+a {
+  color: var(--color-violet);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--color-violet-hover);
+}
+
+/* Scrollbars modernes et subtiles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8DFEE;
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BAC5DC;
+}
+
+/* ==========================================================================
+   CONTRÔLES DE FORMULAIRE GLOBAUX
+   ========================================================================== */
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+textarea,
+select {
+  width: 100%;
+  height: 40px;
+  padding: 8px 14px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-size: 14px;
   font-weight: 500;
-  color: #101a4c;
-
-  background-color: #ffffff;
-  border: 1px solid #d8dced;
-  border-radius: 10px;
-
+  line-height: 1.5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   outline: none;
-  cursor: pointer;
+}
 
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 14px;
+  resize: vertical;
+}
 
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 0 3px rgba(53, 198, 244, 0.18);
+  background-color: var(--color-white);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: #F1F4FA;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/* Style uniforme pour les sélecteurs déroulants */
+select {
   appearance: none;
   -webkit-appearance: none;
-
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237B2CBF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A8499' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 16px;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
 }
 
-/* Survol */
-/*select:hover {
-  border-color: #7b2cbf;
+/* ==========================================================================
+   BOUTONS MODERNES
+   ========================================================================== */
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Champ sélectionné */
-/*select:focus {
-  border-color: #7b2cbf;
-  box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.13);
+button:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
 }
 
-/* Options */
-/*select option {
-  padding: 10px;
-  color: #101a4c;
-  background-color: #ffffff;
+/* Bouton primaire SaaS (Bleu nuit avec accent) */
+.btn-primary,
+button.btn-primary {
+  background-color: var(--color-navy);
+  color: var(--color-white);
+  padding: 9px 18px;
+  font-size: 13.5px;
+  box-shadow: 0 1px 2px rgba(16, 26, 76, 0.12), 0 2px 6px rgba(16, 26, 76, 0.08);
 }
 
-/* Option désactivée */
-/*select option:disabled {
-  color: #9ca3af;
+.btn-primary:hover,
+button.btn-primary:hover {
+  background-color: #172465;
+  box-shadow: 0 3px 10px rgba(16, 26, 76, 0.16);
+  transform: translateY(-1px);
 }
 
-/* Champs désactivés */
-/*select:disabled {
-  background-color: #f3f4f8;
-  color: #9ca3af;
-  cursor: not-allowed;
-  opacity: 0.8;
+.btn-primary:active,
+button.btn-primary:active {
+  transform: translateY(0);
 }
 
-/* Mode sombre éventuel */
-/*.dark select,
-[data-theme="dark"] select {
-  color: #f1f3ff;
-  background-color: #151b38;
-  border-color: #353d61;
+/* Bouton violet signature */
+.btn-violet {
+  background-color: var(--color-violet);
+  color: var(--color-white);
+  padding: 9px 18px;
+  box-shadow: 0 2px 6px rgba(108, 99, 255, 0.25);
 }
 
-.dark select option,
-[data-theme="dark"] select option {
-  color: #f1f3ff;
-  background-color: #151b38;
-}*/
+.btn-violet:hover {
+  background-color: var(--color-violet-hover);
+  transform: translateY(-1px);
+}
+
+/* Bouton secondaire / neutre */
+.btn-secondary,
+button.btn-secondary {
+  background-color: var(--color-white);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  font-size: 13.5px;
+}
+
+.btn-secondary:hover,
+button.btn-secondary:hover {
+  background-color: #F8FAFD;
+  border-color: var(--color-border-hover);
+}
+
+/* Bouton danger */
+.btn-danger,
+button.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+  padding: 8px 16px;
+}
+
+.btn-danger:hover,
+button.btn-danger:hover {
+  background-color: #DC2626;
+}
+
+/* ==========================================================================
+   BADGES DE STATUT MODERNES (PILL BADGES)
+   ========================================================================== */
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Statut Brouillon */
+.badge-status-draft,
+.badge-draft {
+  background-color: #F1F4FA;
+  color: var(--color-text-secondary);
+  border: 1px solid #DCE3F0;
+}
+.badge-status-draft::before,
+.badge-draft::before {
+  background-color: var(--color-text-secondary);
+}
+
+/* Statut Soumis / En attente */
+.badge-status-pending,
+.badge-pending {
+  background-color: var(--color-cyan-soft);
+  color: #0E7490;
+  border: 1px solid #BEE9F8;
+}
+.badge-status-pending::before,
+.badge-pending::before {
+  background-color: var(--color-cyan);
+}
+
+/* Statut Validé / Succès */
+.badge-status-success,
+.badge-success {
+  background-color: var(--color-success-soft);
+  color: #065F46;
+  border: 1px solid var(--color-success-border);
+}
+.badge-status-success::before,
+.badge-success::before {
+  background-color: var(--color-success);
+}
+
+/* Statut Rejeté / Danger */
+.badge-status-danger,
+.badge-danger {
+  background-color: var(--color-danger-soft);
+  color: #991B1B;
+  border: 1px solid var(--color-danger-border);
+}
+.badge-status-danger::before,
+.badge-danger::before {
+  background-color: var(--color-danger);
+}
+
+/* Statut Précision demandée / Warning */
+.badge-status-warning,
+.badge-warning {
+  background-color: var(--color-warning-soft);
+  color: #92400E;
+  border: 1px solid var(--color-warning-border);
+}
+.badge-status-warning::before,
+.badge-warning::before {
+  background-color: var(--color-warning);
+}
+
+/* Statut Commandé / Violet */
+.badge-status-ordered,
+.badge-ordered {
+  background-color: var(--color-violet-soft);
+  color: #4338CA;
+  border: 1px solid #D6D3FD;
+}
+.badge-status-ordered::before,
+.badge-ordered::before {
+  background-color: var(--color-violet);
+}
+
+/* ==========================================================================
+   TABLEAUX MODERNES (STYLE LINEAR / STRIPE)
+   ========================================================================== */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+table.saas-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13.5px;
+}
+
+table.saas-table th {
+  padding: 12px 18px;
+  background-color: #FAFBFD;
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+table.saas-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+  transition: background-color 0.15s ease;
+}
+
+table.saas-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table.saas-table tbody tr:hover td {
+  background-color: #F8FAFD;
+}
+
+/* ==========================================================================
+   MODALES RAFFINÉES & BACKDROPS
+   ========================================================================== */
+
+.modal-backdrop,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(8, 13, 43, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-box,
+.modal-content {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

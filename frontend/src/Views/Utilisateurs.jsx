@@ -8,6 +8,8 @@ import { getRoleCode } from '../service/roleUtils';
 import ActionIconButton from '../components/ActionIconButton.jsx';
 import IconActionButton from '../components/IconActionButton.jsx';
 import { useToastMessages } from '../components/notifications/ToastContext';
+import CustomSelect from '../components/CustomSelect.jsx';
+
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import './Utilisateurs.css';
@@ -107,7 +109,6 @@ export default function Utilisateurs() {
       setRoles(
         Array.isArray(rolesResponse.data) ? rolesResponse.data : []
       );
-
     } catch (error) {
       setChargementErreur(true);
       setError(messageErreur(error));
@@ -352,7 +353,6 @@ export default function Utilisateurs() {
       setManagers([]);
 
       await chargerDonnees();
-
     } catch (error) {
       setError(messageErreur(error));
     } finally {
@@ -387,7 +387,6 @@ export default function Utilisateurs() {
       );
 
       await chargerDonnees();
-
     } catch (error) {
       setError(messageErreur(error));
     } finally {
@@ -453,6 +452,44 @@ export default function Utilisateurs() {
     setter(event.target.value);
     setPage(1);
   };
+
+  // ----------------------------------------------------
+  // OPTIONS DES SELECT PERSONNALISÉS
+  // ----------------------------------------------------
+
+  const optionsServices = services.map((service) => ({
+    value: String(service.id),
+    label:
+      service.nom ||
+      service.libelle ||
+      `Service ${service.id}`,
+  }));
+
+  const optionsRolesFormulaire = roles
+    .filter(
+      (role) =>
+        String(role.code).toUpperCase() !== 'ADMIN'
+    )
+    .map((role) => ({
+      value: role.code,
+      label: role.libelle || role.code,
+    }));
+
+  const optionsManagers = managers.map((manager) => ({
+    value: String(manager.id),
+    label: `${manager.prenom} ${manager.nom} (${manager.matricule})`,
+  }));
+
+  const optionsRolesFiltre = roles.map((role) => ({
+    value: role.code,
+    label: role.libelle || role.code,
+  }));
+
+  const optionsStatuts = [
+    { value: 'tous', label: 'Tous les statuts' },
+    { value: 'actif', label: 'Actifs' },
+    { value: 'inactif', label: 'Inactifs' },
+  ];
 
   // ====================================================
   // AFFICHAGE
@@ -599,33 +636,27 @@ export default function Utilisateurs() {
                 />
               </div>
 
+              {/* SELECT SERVICE */}
+
               <div className="users-field">
                 <label htmlFor="service">
                   Service <span>*</span>
                 </label>
 
-                <select
+                <CustomSelect
                   id="service"
                   name="service"
                   value={form.service}
                   onChange={modifierChamp}
+                  options={optionsServices}
+                  placeholder={
+                    chargementServices
+                      ? 'Chargement…'
+                      : 'Sélectionner un service'
+                  }
                   required
                   disabled={envoi || chargementServices}
-                >
-                  <option value="">
-                    {chargementServices
-                      ? 'Chargement…'
-                      : 'Sélectionner un service'}
-                  </option>
-
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.nom ||
-                        service.libelle ||
-                        `Service ${service.id}`}
-                    </option>
-                  ))}
-                </select>
+                />
 
                 {!chargementServices && services.length === 0 && (
                   <small role="alert">
@@ -634,30 +665,26 @@ export default function Utilisateurs() {
                 )}
               </div>
 
+              {/* SELECT RÔLE */}
+
               <div className="users-field">
                 <label htmlFor="roleCode">
                   Rôle <span>*</span>
                 </label>
 
-                <select
+                <CustomSelect
                   id="roleCode"
                   name="roleCode"
                   value={form.roleCode}
                   onChange={modifierChamp}
+                  options={optionsRolesFormulaire}
+                  placeholder="Sélectionner un rôle"
                   required
                   disabled={envoi}
-                >
-                  <option value="">
-                    Sélectionner un rôle
-                  </option>
-
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.code}>
-                      {role.libelle || role.code}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
+
+              {/* SELECT MANAGER */}
 
               {form.roleCode === 'DEMANDEUR' && (
                 <div className="users-field users-field-full">
@@ -665,30 +692,24 @@ export default function Utilisateurs() {
                     Manager responsable <span>*</span>
                   </label>
 
-                  <select
+                  <CustomSelect
                     id="managerId"
                     name="managerId"
                     value={form.managerId}
                     onChange={modifierChamp}
+                    options={optionsManagers}
+                    placeholder={
+                      chargementManagers
+                        ? 'Chargement des managers…'
+                        : 'Sélectionner un manager'
+                    }
                     required
                     disabled={
                       envoi ||
                       chargementManagers ||
                       !form.service
                     }
-                  >
-                    <option value="">
-                      {chargementManagers
-                        ? 'Chargement des managers…'
-                        : 'Sélectionner un manager'}
-                    </option>
-
-                    {managers.map((manager) => (
-                      <option key={manager.id} value={manager.id}>
-                        {manager.prenom} {manager.nom} ({manager.matricule})
-                      </option>
-                    ))}
-                  </select>
+                  />
 
                   {!chargementManagers &&
                     !erreurManagers &&
@@ -806,7 +827,7 @@ export default function Utilisateurs() {
             </div>
           </div>
 
-          {/* Recherche et filtres */}
+          {/* RECHERCHE ET FILTRES */}
 
           <div className="users-list-controls">
 
@@ -827,6 +848,8 @@ export default function Utilisateurs() {
               </div>
             </label>
 
+            {/* FILTRE PAR RÔLE */}
+
             <label
               className="sr-only"
               htmlFor="users-role-filter"
@@ -834,19 +857,22 @@ export default function Utilisateurs() {
               Filtrer par rôle
             </label>
 
-            <select
+            <CustomSelect
               id="users-role-filter"
+              name="filtreRole"
               value={filtreRole}
               onChange={reinitialiserFiltres(setFiltreRole)}
-            >
-              <option value="">Tous les rôles</option>
+              options={[
+                {
+                  value: '',
+                  label: 'Tous les rôles',
+                },
+                ...optionsRolesFiltre,
+              ]}
+              placeholder="Tous les rôles"
+            />
 
-              {roles.map((role) => (
-                <option key={role.id} value={role.code}>
-                  {role.libelle || role.code}
-                </option>
-              ))}
-            </select>
+            {/* FILTRE PAR STATUT */}
 
             <label
               className="sr-only"
@@ -855,19 +881,18 @@ export default function Utilisateurs() {
               Filtrer par statut
             </label>
 
-            <select
+            <CustomSelect
               id="users-status-filter"
+              name="filtreStatut"
               value={filtreStatut}
               onChange={reinitialiserFiltres(setFiltreStatut)}
-            >
-              <option value="tous">Tous les statuts</option>
-              <option value="actif">Actifs</option>
-              <option value="inactif">Inactifs</option>
-            </select>
+              options={optionsStatuts}
+              placeholder="Tous les statuts"
+            />
 
           </div>
 
-          {/* États de chargement et résultats */}
+          {/* ÉTATS DE CHARGEMENT ET RÉSULTATS */}
 
           {chargement ? (
             <p className="users-empty-state" role="status">
@@ -992,7 +1017,7 @@ export default function Utilisateurs() {
                 </table>
               </div>
 
-              {/* Pagination */}
+              {/* PAGINATION */}
 
               <div className="users-pagination">
                 <span>

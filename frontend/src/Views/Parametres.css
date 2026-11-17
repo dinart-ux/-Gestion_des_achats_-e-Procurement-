@@ -32,7 +32,7 @@
 .parametres-eyebrow {
   display: inline-block;
   margin-bottom: 8px;
-  color: #7663df;
+  color: var(--color-violet, #6C63FF);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -62,8 +62,8 @@
   flex-shrink: 0;
   border: 1px solid #e9e6ff;
   border-radius: 18px;
-  background: linear-gradient(135deg, #f3f0ff, #e9e5ff);
-  color: #7462dc;
+  background: linear-gradient(135deg, var(--color-violet-soft, #F0EFFF), var(--color-cyan-soft, #EBF9FD));
+  color: var(--color-violet, #6C63FF);
   font-size: 29px;
 }
 

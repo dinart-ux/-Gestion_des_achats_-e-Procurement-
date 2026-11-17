@@ -945,7 +945,7 @@ export default function Menu({ onLogout }) {
                                         id="profile-dropdown"
                                         role="menu"
                                     >
-                                        <button
+                                        {/*<button
                                             type="button"
                                             role="menuitem"
                                             onClick={() => {
@@ -968,7 +968,7 @@ export default function Menu({ onLogout }) {
                                             }}
                                         >
                                             Modifier le mot de passe
-                                        </button>
+                                        </button>*/}
 
                                         <button
                                             type="button"

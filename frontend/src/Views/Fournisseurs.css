@@ -37,8 +37,8 @@
 
 .supplier-search-box:focus-within {
   background: #fff;
-  border-color: #6254d9;
-  box-shadow: 0 0 0 3px rgba(98, 84, 217, 0.1);
+  border-color: var(--color-cyan, #35C6F4);
+  box-shadow: 0 0 0 3px rgba(53, 198, 244, 0.18);
 }
 
 .supplier-search-icon {
@@ -195,7 +195,7 @@
 .supplier-category-options input {
   width: 16px;
   height: 16px;
-  accent-color: #6254d9;
+  accent-color: var(--color-violet, #6C63FF);
 }
 
 /* Boutons */

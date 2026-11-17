@@ -627,6 +627,7 @@ export default function Offres() {
                     <button
                       type="button"
                       className="offers-view-button"
+                      title="Choisir une demande"
                       onClick={() => loadOffers(demande.id)}
                       disabled={
                         loadingOffers ||
@@ -935,6 +936,7 @@ export default function Offres() {
                                       icon="validate"
                                       type="button"
                                       className="action-button success-button"
+                                      title="retenir une proposition"
                                       disabled={workingOfferId !== null}
                                       onClick={() =>
                                         applyOfferDecision(

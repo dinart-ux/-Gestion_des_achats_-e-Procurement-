@@ -1227,11 +1227,12 @@ export default function Parametres() {
                   icon="save"
                   type="submit"
                   className="action-button"
+                  title="Créer le budget"
                   disabled={savingBudget}
                 >
                   {savingBudget
                     ? 'Enregistrement...'
-                    : 'Enregistrer le budget'}
+                    : 'Créer le budget'}
                 </IconActionButton>
               </div>
             </form>

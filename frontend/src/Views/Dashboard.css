@@ -1,19 +1,21 @@
 
 :root {
-    --dashboard-navy: #101a4c;
-    --dashboard-navy-deep: #080d2b;
-    --dashboard-violet: #7b2cbf;
-    --dashboard-violet-light: #f1e8fb;
-    --dashboard-bg: #f5f7fb;
-    --dashboard-border: #e5eaf2;
-    --dashboard-text: #18233f;
-    --dashboard-muted: #738099;
-    --dashboard-green: #16845b;
-    --dashboard-orange: #c77816;
-    --dashboard-red: #c2414b;
+    --dashboard-navy: var(--color-navy, #101a4c);
+    --dashboard-navy-deep: var(--color-navy-dark, #080d2b);
+    --dashboard-violet: var(--color-violet, #6C63FF);
+    --dashboard-violet-light: var(--color-violet-soft, #F0EFFF);
+    --dashboard-cyan: var(--color-cyan, #35C6F4);
+    --dashboard-cyan-light: var(--color-cyan-soft, #EBF9FD);
+    --dashboard-bg: var(--color-bg, #f5f7fc);
+    --dashboard-border: var(--color-border, #e5e9f2);
+    --dashboard-text: var(--color-text, #172033);
+    --dashboard-muted: var(--color-text-secondary, #7A8499);
+    --dashboard-green: var(--color-success, #10B981);
+    --dashboard-orange: var(--color-warning, #F59E0B);
+    --dashboard-red: var(--color-danger, #EF4444);
     --dashboard-white: #ffffff;
-    --dashboard-radius: 18px;
-    --dashboard-shadow: 0 8px 28px rgba(16, 26, 76, 0.06);
+    --dashboard-radius: var(--radius-card, 14px);
+    --dashboard-shadow: var(--shadow-card, 0 2px 8px rgba(16, 26, 76, 0.04));
 }
 
 .dashboard-page {
@@ -231,6 +233,12 @@
     border: 1px solid var(--dashboard-border);
     border-radius: var(--dashboard-radius);
     box-shadow: var(--dashboard-shadow);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 26, 76, 0.08);
 }
 
 .dashboard-summary-card::after {
