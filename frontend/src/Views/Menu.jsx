@@ -1,40 +1,8 @@
-import {
-    useEffect,
-    useState,
-    useRef,
-    useCallback,
-    useMemo,
-} from 'react';
-
-import {
-    NavLink,
-    Route,
-    Routes,
-    Navigate,
-    useNavigate,
-    useLocation,
-} from 'react-router-dom';
-
-import {
-    Building2,
-    ChartNoAxesCombined,
-    ClipboardCheck,
-    FileText,
-    House,
-    Landmark,
-    LogOut,
-    Settings,
-    ShoppingCart,
-    Tags,
-    Truck,
-    Users,
-    Wallet,
-} from 'lucide-react';
-
+import {useEffect,useState,useRef,useCallback,useMemo,} from 'react';
+import {NavLink,Route,Routes,Navigate,useNavigate,useLocation,} from 'react-router-dom';
+import {Building2,ChartNoAxesCombined,ClipboardCheck,FileText,House,Landmark,LogOut,Settings,ShoppingCart,Tags,Truck,Users,Wallet,} from 'lucide-react';
 import spatLogo from '../assets/images (1).jpeg';
-
 import './Menu.css';
-
 import Categories from './Categories.jsx';
 import Dashboard from './Dashboard.jsx';
 import Commandes from './Commandes.jsx';
